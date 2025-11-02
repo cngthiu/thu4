@@ -4,6 +4,7 @@ import com.example.library.dto.MemberDto;
 import com.example.library.jooq.enums.MemberStatus;
 import com.example.library.jooq.tables.records.MemberRecord;
 import java.util.Locale;
+import java.util.List;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Result;
@@ -42,6 +43,13 @@ public class MemberService {
         return dsl.selectFrom(MEMBER)
                 .where(MEMBER.MEMBER_ID.eq(id))
                 .fetchOne();
+    }
+
+    public List<MemberRecord> listActiveMembers() {
+        return dsl.selectFrom(MEMBER)
+                .where(MEMBER.STATUS.eq(MemberStatus.ACTIVE))
+                .orderBy(MEMBER.FULL_NAME.asc())
+                .fetch();
     }
 
     @Transactional

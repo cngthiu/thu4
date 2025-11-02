@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Locale;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
@@ -35,7 +37,25 @@ public class BookService {
                             .or(CATEGORY.NAME.likeIgnoreCase(keyword))
             );
         }
+        return fetchBooks(condition, sortField, size, page * size);
+    }
 
+    public List<BookListItem> listAvailable() {
+        Condition condition = BOOK.STOCK.gt(0)
+                .and(BOOK.STATUS.eq(BookStatus.AVAILABLE));
+        return fetchBooks(condition, BOOK.TITLE.asc(), Integer.MAX_VALUE, 0);
+    }
+
+    private List<BookListItem> fetchBooks(Condition condition, SortField<?> sortField, int limit, int offset) {
+        return baseSelect()
+                .where(condition)
+                .orderBy(sortField == null ? BOOK.TITLE.asc() : sortField)
+                .limit(limit)
+                .offset(offset)
+                .fetch(this::mapToBookListItem);
+    }
+
+    private SelectJoinStep<?> baseSelect() {
         return dsl.select(
                         BOOK.BOOK_ID,
                         BOOK.TITLE,
@@ -49,22 +69,21 @@ public class BookService {
                 )
                 .from(BOOK)
                 .leftJoin(AUTHOR).on(BOOK.AUTHOR_ID.eq(AUTHOR.AUTHOR_ID))
-                .leftJoin(CATEGORY).on(BOOK.CATEGORY_ID.eq(CATEGORY.CATEGORY_ID))
-                .where(condition)
-                .orderBy(sortField == null ? BOOK.TITLE.asc() : sortField)
-                .limit(size)
-                .offset(page * size)
-                .fetch(record -> new BookListItem(
-                        record.get(BOOK.BOOK_ID),
-                        record.get(BOOK.TITLE),
-                        record.get(BOOK.AUTHOR_ID),
-                        record.get(AUTHOR.NAME),
-                        record.get(BOOK.CATEGORY_ID),
-                        record.get(CATEGORY.NAME),
-                        record.get(BOOK.PRICE),
-                        record.get(BOOK.STOCK),
-                        record.get(BOOK.STATUS)
-                ));
+                .leftJoin(CATEGORY).on(BOOK.CATEGORY_ID.eq(CATEGORY.CATEGORY_ID));
+    }
+
+    private BookListItem mapToBookListItem(Record record) {
+        return new BookListItem(
+                record.get(BOOK.BOOK_ID),
+                record.get(BOOK.TITLE),
+                record.get(BOOK.AUTHOR_ID),
+                record.get(AUTHOR.NAME),
+                record.get(BOOK.CATEGORY_ID),
+                record.get(CATEGORY.NAME),
+                record.get(BOOK.PRICE),
+                record.get(BOOK.STOCK),
+                record.get(BOOK.STATUS)
+        );
     }
 
     public BookRecord getById(Long id) {
