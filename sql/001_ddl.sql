@@ -1,7 +1,5 @@
 CREATE DATABASE IF NOT EXISTS booksdb CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-CREATE USER IF NOT EXISTS 'booksuser'@'localhost' IDENTIFIED BY 'bookspass';
-GRANT ALL PRIVILEGES ON booksdb.* TO 'booksuser'@'localhost';
-FLUSH PRIVILEGES;
+
 USE booksdb;
 
 CREATE TABLE IF NOT EXISTS AUTHOR (

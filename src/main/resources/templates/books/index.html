@@ -1,39 +1,72 @@
 <!-- src/main/resources/templates/books/index.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="fragments/layout :: layout (~{::title}, ~{::section})">
-<head><title>Books</title></head>
-<body>
-<section>
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Books</h3>
-    <form class="d-flex" method="get">
-      <input class="form-control me-2" type="search" name="q" th:value="${q}" placeholder="Search title...">
-      <button class="btn btn-primary">Search</button>
-      <a class="btn btn-success ms-2" th:href="@{/books/new}">+ New</a>
-    </form>
-  </div>
-  <table class="table table-striped table-hover">
-    <thead><tr>
-      <th>ID</th><th>Title</th><th>AuthorId</th><th>CategoryId</th><th>Price</th><th>Stock</th><th>Status</th><th></th>
-    </tr></thead>
-    <tbody>
-    <tr th:each="r: ${books}">
-      <td th:text="${r.get('book_id')}"></td>
-      <td th:text="${r.get('title')}"></td>
-      <td th:text="${r.get('author_id')}"></td>
-      <td th:text="${r.get('category_id')}"></td>
-      <td th:text="${r.get('price')}"></td>
-      <td th:text="${r.get('stock')}"></td>
-      <td th:text="${r.get('status')}"></td>
-      <td class="text-nowrap">
-        <a class="btn btn-sm btn-outline-primary" th:href="@{|/books/${r.get('book_id')}/edit|}">Edit</a>
-        <form th:action="@{|/books/${r.get('book_id')}/delete|}" method="post" style="display:inline-block">
-          <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?')">Delete</button>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="fragments/layout :: layout (~{::title}, ~{::section})"
+>
+  <head>
+    <title>Books</title>
+  </head>
+  <body>
+    <section>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Books</h3>
+        <form class="d-flex" method="get">
+          <input
+            class="form-control me-2"
+            type="search"
+            name="q"
+            th:value="${q}"
+            placeholder="Search title..."
+          />
+          <button class="btn btn-primary">Search</button>
+          <a class="btn btn-success ms-2" th:href="@{/books/new}">+ New</a>
         </form>
-      </td>
-    </tr>
-    </tbody>
-  </table>
-</section>
-</body>
+      </div>
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>AuthorId</th>
+            <th>CategoryId</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="r: ${books}">
+            <td th:text="${r.bookId}"></td>
+            <td th:text="${r.title}"></td>
+            <td th:text="${r.authorId}"></td>
+            <td th:text="${r.categoryId}"></td>
+            <td th:text="${r.price}"></td>
+            <td th:text="${r.stock}"></td>
+            <td th:text="${r.status}"></td>
+            <td class="text-nowrap">
+              <a
+                class="btn btn-sm btn-outline-primary"
+                th:href="@{|/books/${r.bookId}/edit|}"
+                >Edit</a
+              >
+              <form
+                th:action="@{|/books/${r.bookId}/delete|}"
+                method="post"
+                style="display: inline-block"
+              >
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  onclick="return confirm('Delete?')"
+                >
+                  Delete
+                </button>
+              </form>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </body>
 </html>
