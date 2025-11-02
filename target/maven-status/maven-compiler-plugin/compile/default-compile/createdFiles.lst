@@ -24,6 +24,7 @@ com/example/library/jooq/tables/records/MemberRecord.class
 com/example/library/dto/LoanFilter.class
 com/example/library/controller/api/BookApiController.class
 com/example/library/dto/AuthorDto.class
+com/example/library/controller/web/DashboardController.class
 com/example/library/controller/web/AuthorsPageController.class
 com/example/library/jooq/enums/MemberStatus.class
 com/example/library/dto/LoanBorrowRequest.class
