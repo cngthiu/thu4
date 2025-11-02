@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.19.0.xsd">
+  <jdbc>
+    <driver>com.mysql.cj.jdbc.Driver</driver>
+    <url>jdbc:mysql://localhost:3306/booksdb?useSSL=false&amp;serverTimezone=Asia/Ho_Chi_Minh</url>
+    <user>root</user>
+    <password>thieulk23</password>
+  </jdbc>
+  <generator>
+    <name>org.jooq.codegen.JavaGenerator</name>
+    <database>
+      <name>org.jooq.meta.mysql.MySQLDatabase</name>
+      <inputSchema>booksdb</inputSchema>
+      <includes>.*</includes>
+    </database>
+    <generate>
+      <pojos>true</pojos>
+      <daos>false</daos>
+      <springAnnotations>false</springAnnotations>
+    </generate>
+    <target>
+      <packageName>com.example.library.jooq</packageName>
+      <directory>target/generated-sources/jooq</directory>
+    </target>
+  </generator>
+</configuration>

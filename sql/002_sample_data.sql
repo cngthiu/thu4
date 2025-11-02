@@ -1,0 +1,26 @@
+USE booksdb;
+
+INSERT INTO AUTHOR(NAME, NATIONALITY) VALUES
+('Nguyen Nhat Anh', 'VN'),
+('Haruki Murakami', 'JP'),
+('J. K. Rowling', 'UK');
+
+INSERT INTO CATEGORY(NAME) VALUES ('Novel'), ('Fantasy'), ('Technology');
+
+INSERT INTO BOOK(TITLE, AUTHOR_ID, CATEGORY_ID, PUBLISHER, PUBLISHED_YEAR, ISBN, PRICE, STOCK, STATUS) VALUES
+('Mat biec', 1, 1, 'Tre', 1990, 'ISBN-0001', 90000, 3, 'AVAILABLE'),
+('Cho toi xin mot ve di tuoi tho', 1, 1, 'Tre', 2008, 'ISBN-0002', 85000, 2, 'AVAILABLE'),
+('Kafka on the Shore', 2, 1, 'Shinchosha', 2002, 'ISBN-1001', 150000, 4, 'AVAILABLE'),
+('Norwegian Wood', 2, 1, 'Kodansha', 1987, 'ISBN-1002', 120000, 5, 'AVAILABLE'),
+('Harry Potter and the Sorcerer''s Stone', 3, 2, 'Bloomsbury', 1997, 'ISBN-2001', 180000, 6, 'AVAILABLE');
+
+INSERT INTO MEMBER(FULL_NAME, EMAIL, PHONE, STATUS) VALUES
+('Tran Thi A', 'a@example.com', '0901234567', 'ACTIVE'),
+('Nguyen Van B', 'b@example.com', '0912345678', 'ACTIVE');
+
+-- One current loan and one overdue
+INSERT INTO LOAN(BOOK_ID, MEMBER_ID, BORROW_DATE, DUE_DATE, RETURN_DATE, STATUS, FINE_AMOUNT)
+VALUES (1, 1, NOW() - INTERVAL 2 DAY, NOW() + INTERVAL 12 DAY, NULL, 'BORROWED', 0.00);
+
+INSERT INTO LOAN(BOOK_ID, MEMBER_ID, BORROW_DATE, DUE_DATE, RETURN_DATE, STATUS, FINE_AMOUNT)
+VALUES (2, 2, NOW() - INTERVAL 20 DAY, NOW() - INTERVAL 5 DAY, NULL, 'OVERDUE', 25000.00);
