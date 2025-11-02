@@ -1,57 +1,89 @@
-//src/main/java/com/example/library/service/MemberService.java
 package com.example.library.service;
 
 import com.example.library.dto.MemberDto;
+import com.example.library.jooq.enums.MemberStatus;
 import com.example.library.jooq.tables.records.MemberRecord;
-import org.jooq.*;
+import java.util.Locale;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Result;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import static com.example.library.jooq.tables.Member.MEMBER;
 
 @Service
 public class MemberService {
     private final DSLContext dsl;
-    public MemberService(DSLContext dsl) { this.dsl = dsl; }
 
-    public Result<Record> search(String q, int page, int size) {
-        Condition cond = DSL.trueCondition();
+    public MemberService(DSLContext dsl) {
+        this.dsl = dsl;
+    }
+
+    public Result<MemberRecord> search(String q, int page, int size) {
+        Condition condition = DSL.trueCondition();
         if (q != null && !q.isBlank()) {
-            cond = cond.and(MEMBER.FULL_NAME.likeIgnoreCase("%" + q.trim() + "%")
-                    .or(MEMBER.EMAIL.likeIgnoreCase("%" + q.trim() + "%")));
+            String keyword = "%" + q.trim() + "%";
+            condition = condition.and(
+                    MEMBER.FULL_NAME.likeIgnoreCase(keyword)
+                            .or(MEMBER.EMAIL.likeIgnoreCase(keyword))
+            );
         }
-        return dsl.select().from(MEMBER).where(cond)
+        return dsl.selectFrom(MEMBER)
+                .where(condition)
                 .orderBy(MEMBER.MEMBER_ID.desc())
-                .limit(size).offset(page * size).fetch();
+                .limit(size)
+                .offset(page * size)
+                .fetch();
     }
 
     public MemberRecord getById(Long id) {
-        return dsl.selectFrom(MEMBER).where(MEMBER.MEMBER_ID.eq(id)).fetchOne();
+        return dsl.selectFrom(MEMBER)
+                .where(MEMBER.MEMBER_ID.eq(id))
+                .fetchOne();
     }
 
     @Transactional
     public Long create(MemberDto dto) {
-        MemberRecord r = dsl.newRecord(MEMBER);
-        r.setFullName(dto.fullName());
-        r.setEmail(dto.email());
-        r.setPhone(dto.phone());
-        r.setStatus(dto.status() == null ? "ACTIVE" : dto.status());
-        r.store();
-        return r.getMemberId();
+        MemberRecord record = dsl.newRecord(MEMBER);
+        record.setFullName(dto.fullName());
+        record.setEmail(dto.email());
+        record.setPhone(dto.phone());
+        record.setStatus(resolveStatus(dto.status()));
+        record.store();
+        return record.getMemberId();
     }
 
     @Transactional
     public void update(Long id, MemberDto dto) {
-        int rows = dsl.update(MEMBER)
+        int rowsUpdated = dsl.update(MEMBER)
                 .set(MEMBER.FULL_NAME, dto.fullName())
                 .set(MEMBER.EMAIL, dto.email())
                 .set(MEMBER.PHONE, dto.phone())
-                .set(MEMBER.STATUS, dto.status() == null ? "ACTIVE" : dto.status())
-                .where(MEMBER.MEMBER_ID.eq(id)).execute();
-        if (rows == 0) throw new IllegalArgumentException("Member not found: " + id);
+                .set(MEMBER.STATUS, resolveStatus(dto.status()))
+                .where(MEMBER.MEMBER_ID.eq(id))
+                .execute();
+        if (rowsUpdated == 0) {
+            throw new IllegalArgumentException("Member not found: " + id);
+        }
     }
 
     @Transactional
     public void delete(Long id) {
-        dsl.deleteFrom(MEMBER).where(MEMBER.MEMBER_ID.eq(id)).execute();
+        dsl.deleteFrom(MEMBER)
+                .where(MEMBER.MEMBER_ID.eq(id))
+                .execute();
+    }
+
+    private MemberStatus resolveStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return MemberStatus.ACTIVE;
+        }
+        try {
+            return MemberStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid member status: " + status, ex);
+        }
     }
 }

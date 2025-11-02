@@ -2,7 +2,8 @@
 package com.example.library.service;
 
 import com.example.library.config.MailConfig;
-import org.jooq.*;
+import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -16,6 +17,9 @@ import static com.example.library.jooq.tables.NotificationHistory.NOTIFICATION_H
 
 @Service
 public class NotificationService {
+    private static final byte SUCCESS_FLAG = 1;
+    private static final byte FAILURE_FLAG = 0;
+
     private final DSLContext dsl;
     private final JavaMailSender mailSender;
     private final MailConfig mailConfig;
@@ -51,7 +55,7 @@ public class NotificationService {
            .set(NOTIFICATION_HISTORY.EMAIL, n.get(NOTIFICATION.EMAIL))
            .set(NOTIFICATION_HISTORY.SUBJECT, n.get(NOTIFICATION.SUBJECT))
            .set(NOTIFICATION_HISTORY.BODY, n.get(NOTIFICATION.BODY))
-           .set(NOTIFICATION_HISTORY.SUCCESS, true)
+           .set(NOTIFICATION_HISTORY.SUCCESS, SUCCESS_FLAG)
            .set(NOTIFICATION_HISTORY.ERROR_MESSAGE, (String) null)
            .set(NOTIFICATION_HISTORY.CREATED_AT, n.get(NOTIFICATION.CREATED_AT))
            .execute();
@@ -73,7 +77,7 @@ public class NotificationService {
                .set(NOTIFICATION_HISTORY.EMAIL, n.get(NOTIFICATION.EMAIL))
                .set(NOTIFICATION_HISTORY.SUBJECT, n.get(NOTIFICATION.SUBJECT))
                .set(NOTIFICATION_HISTORY.BODY, n.get(NOTIFICATION.BODY))
-               .set(NOTIFICATION_HISTORY.SUCCESS, false)
+               .set(NOTIFICATION_HISTORY.SUCCESS, FAILURE_FLAG)
                .set(NOTIFICATION_HISTORY.ERROR_MESSAGE, error)
                .set(NOTIFICATION_HISTORY.CREATED_AT, n.get(NOTIFICATION.CREATED_AT))
                .execute();
