@@ -1,7 +1,5 @@
 # Library Borrow / Return Management (Spring Boot + jOOQ + MySQL)
 
-# Library Borrow / Return Management (Spring Boot + jOOQ + MySQL)
-
 Hệ thống quản lý sách, thành viên, mượn–trả, cron đánh dấu quá hạn và gửi email nhắc hạn.  
 Tech: **Java 21, Spring Boot 3.x, jOOQ 3.19+, MySQL 8.x, Thymeleaf+Bootstrap, Spring Mail, Scheduler**.  
 Không dùng JPA/Hibernate. Không barcode/QR. Không reservation/hold. Tz: `Asia/Ho_Chi_Minh`.

@@ -1,24 +1,29 @@
+<!-- src/main/resources/templates/fragments/layout.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Library</title>
-  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}"/>
-</head>
-<body class="bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
-  <div class="container">
-    <a class="navbar-brand" th:href="@{/books}">📚 Library</a>
-    <div class="navbar-nav">
-      <a class="nav-link" th:href="@{/books}">Books</a>
-      <a class="nav-link" th:href="@{/members}">Members</a>
-      <a class="nav-link" th:href="@{/loans}">Loans</a>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  lang="en"
+  th:fragment="layout (title, content)"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title th:replace="${title}">Library</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+  </head>
+  <body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-3">
+      <div class="container">
+        <a class="navbar-brand" th:href="@{/books}">📚 Library</a>
+        <div class="navbar-nav">
+          <a class="nav-link" th:href="@{/books}">Books</a>
+          <a class="nav-link" th:href="@{/members}">Members</a>
+          <a class="nav-link" th:href="@{/loans}">Loans</a>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div th:replace="${content}"></div>
     </div>
-  </div>
-</nav>
-<div class="container">
-  <div th:insert="${content}"></div>
-</div>
-</body>
+  </body>
 </html>
