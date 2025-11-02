@@ -1,7 +1,10 @@
 <!-- src/main/resources/templates/loans/index.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="fragments/layout :: layout (~{::title}, ~{::section})">
-<head><title>Loans</title></head>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout (~{::title}, ~{::section})">
+<head>
+  <title>Loans</title>
+</head>
 <body>
 <section>
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -17,22 +20,28 @@
       <a class="btn btn-success ms-2" th:href="@{/loans/borrow}">+ Borrow</a>
     </form>
   </div>
+
   <table class="table table-striped table-hover">
     <thead>
-    <tr><th>ID</th><th>BookId</th><th>MemberId</th><th>Borrow</th><th>Due</th><th>Return</th><th>Status</th><th>Fine</th><th></th></tr>
+    <tr>
+      <th>ID</th><th>BookId</th><th>MemberId</th>
+      <th>Borrow</th><th>Due</th><th>Return</th>
+      <th>Status</th><th>Fine</th><th></th>
+    </tr>
     </thead>
     <tbody>
-    <tr th:each="r: ${loans}">
-      <td th:text="${r.get('loan_id')}"></td>
-      <td th:text="${r.get('book_id')}"></td>
-      <td th:text="${r.get('member_id')}"></td>
-      <td th:text="${r.get('borrow_date')}"></td>
-      <td th:text="${r.get('due_date')}"></td>
-      <td th:text="${r.get('return_date')}"></td>
-      <td th:text="${r.get('status')}"></td>
-      <td th:text="${r.get('fine_amount')}"></td>
+    <tr th:each="r : ${loans}">
+      <td th:text="${r.loanId}"></td>
+      <td th:text="${r.bookId}"></td>
+      <td th:text="${r.memberId}"></td>
+      <td th:text="${r.borrowDate}"></td>
+      <td th:text="${r.dueDate}"></td>
+      <td th:text="${r.returnDate}"></td>
+      <td th:text="${r.status}"></td>
+      <td th:text="${r.fineAmount}"></td>
       <td>
-        <form th:if="${r.get('status') != 'RETURNED'}" th:action="@{|/loans/${r.get('loan_id')}/return|}" method="post">
+        <form th:if="${r.status != 'RETURNED'}"
+              th:action="@{|/loans/${r.loanId}/return|}" method="post">
           <button class="btn btn-sm btn-outline-primary">Mark Returned</button>
         </form>
       </td>

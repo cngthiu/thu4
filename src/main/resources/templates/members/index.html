@@ -16,14 +16,14 @@
     <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th></th></tr></thead>
     <tbody>
     <tr th:each="r: ${members}">
-      <td th:text="${r.get('member_id')}"></td>
-      <td th:text="${r.get('full_name')}"></td>
-      <td th:text="${r.get('email')}"></td>
-      <td th:text="${r.get('phone')}"></td>
-      <td th:text="${r.get('status')}"></td>
+      <td th:text="${r.memberId}"></td>
+      <td th:text="${r.fullName}"></td>
+      <td th:text="${r.email}"></td>
+      <td th:text="${r.phone}"></td>
+      <td th:text="${r.status}"></td>
       <td class="text-nowrap">
-        <a class="btn btn-sm btn-outline-primary" th:href="@{|/members/${r.get('member_id')}/edit|}">Edit</a>
-        <form th:action="@{|/members/${r.get('member_id')}/delete|}" method="post" style="display:inline-block">
+        <a class="btn btn-sm btn-outline-primary" th:href="@{|/members/${r.memberId}/edit|}">Edit</a>
+        <form th:action="@{|/members/${r.memberId}/delete|}" method="post" style="display:inline-block">
           <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?')">Delete</button>
         </form>
       </td>
