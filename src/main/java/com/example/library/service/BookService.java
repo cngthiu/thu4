@@ -1,19 +1,21 @@
-//src/main/java/com/example/library/service/BookService.java
 package com.example.library.service;
 
 import com.example.library.dto.BookDto;
+import com.example.library.dto.BookListItem;
 import com.example.library.jooq.enums.BookStatus;
 import com.example.library.jooq.tables.records.BookRecord;
+import java.util.List;
 import java.util.Locale;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Result;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.example.library.jooq.tables.Author.AUTHOR;
 import static com.example.library.jooq.tables.Book.BOOK;
+import static com.example.library.jooq.tables.Category.CATEGORY;
 
 @Service
 public class BookService {
@@ -23,17 +25,46 @@ public class BookService {
         this.dsl = dsl;
     }
 
-    public Result<BookRecord> search(String q, int page, int size, SortField<?> sortField) {
+    public List<BookListItem> search(String q, int page, int size, SortField<?> sortField) {
         Condition condition = DSL.trueCondition();
         if (q != null && !q.isBlank()) {
-            condition = condition.and(BOOK.TITLE.likeIgnoreCase("%" + q.trim() + "%"));
+            String keyword = "%" + q.trim() + "%";
+            condition = condition.and(
+                    BOOK.TITLE.likeIgnoreCase(keyword)
+                            .or(AUTHOR.NAME.likeIgnoreCase(keyword))
+                            .or(CATEGORY.NAME.likeIgnoreCase(keyword))
+            );
         }
-        return dsl.selectFrom(BOOK)
+
+        return dsl.select(
+                        BOOK.BOOK_ID,
+                        BOOK.TITLE,
+                        BOOK.AUTHOR_ID,
+                        AUTHOR.NAME,
+                        BOOK.CATEGORY_ID,
+                        CATEGORY.NAME,
+                        BOOK.PRICE,
+                        BOOK.STOCK,
+                        BOOK.STATUS
+                )
+                .from(BOOK)
+                .leftJoin(AUTHOR).on(BOOK.AUTHOR_ID.eq(AUTHOR.AUTHOR_ID))
+                .leftJoin(CATEGORY).on(BOOK.CATEGORY_ID.eq(CATEGORY.CATEGORY_ID))
                 .where(condition)
                 .orderBy(sortField == null ? BOOK.TITLE.asc() : sortField)
                 .limit(size)
                 .offset(page * size)
-                .fetch();
+                .fetch(record -> new BookListItem(
+                        record.get(BOOK.BOOK_ID),
+                        record.get(BOOK.TITLE),
+                        record.get(BOOK.AUTHOR_ID),
+                        record.get(AUTHOR.NAME),
+                        record.get(BOOK.CATEGORY_ID),
+                        record.get(CATEGORY.NAME),
+                        record.get(BOOK.PRICE),
+                        record.get(BOOK.STOCK),
+                        record.get(BOOK.STATUS)
+                ));
     }
 
     public BookRecord getById(Long id) {

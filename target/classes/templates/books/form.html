@@ -12,12 +12,26 @@
         <input class="form-control" name="title" th:value="${book.title()}"/>
       </div>
       <div class="col-md-3">
-        <label class="form-label">Author ID</label>
-        <input class="form-control" name="authorId" th:value="${book.authorId()}"/>
+        <label class="form-label">Author</label>
+        <select class="form-select" name="authorId">
+          <option th:if="${#lists.isEmpty(authors)}" selected disabled>No author available</option>
+          <option th:each="author : ${authors}"
+                  th:value="${author.authorId}"
+                  th:text="${author.name}"
+                  th:selected="${author.authorId == book.authorId()}">
+          </option>
+        </select>
       </div>
       <div class="col-md-3">
-        <label class="form-label">Category ID</label>
-        <input class="form-control" name="categoryId" th:value="${book.categoryId()}"/>
+        <label class="form-label">Category</label>
+        <select class="form-select" name="categoryId">
+          <option th:if="${#lists.isEmpty(categories)}" selected disabled>No category available</option>
+          <option th:each="category : ${categories}"
+                  th:value="${category.categoryId}"
+                  th:text="${category.name}"
+                  th:selected="${category.categoryId == book.categoryId()}">
+          </option>
+        </select>
       </div>
       <div class="col-md-4">
         <label class="form-label">Publisher</label>

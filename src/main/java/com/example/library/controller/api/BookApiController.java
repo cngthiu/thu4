@@ -1,7 +1,7 @@
 package com.example.library.controller.api;
 
 import com.example.library.dto.BookDto;
-import com.example.library.jooq.tables.records.BookRecord;
+import com.example.library.dto.BookListItem;
 import com.example.library.service.BookService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -28,10 +28,10 @@ public class BookApiController {
     }
 
     @GetMapping
-    public List<BookRecord> list(@RequestParam(required = false) String q,
-                                 @RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "10") int size,
-                                 @RequestParam(required = false, name = "sort") String sort) {
+    public List<BookListItem> list(@RequestParam(required = false) String q,
+                                   @RequestParam(defaultValue = "0") int page,
+                                   @RequestParam(defaultValue = "10") int size,
+                                   @RequestParam(required = false, name = "sort") String sort) {
         SortField<?> sortField = null;
         if (sort != null) {
             boolean desc = sort.endsWith(",desc");

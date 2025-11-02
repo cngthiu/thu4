@@ -1,0 +1,35 @@
+<!-- src/main/resources/templates/categories/index.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout (~{::title}, ~{::section})">
+<head><title>Categories</title></head>
+<body>
+<section>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Categories</h3>
+    <form class="d-flex" method="get">
+      <input class="form-control me-2" type="search" name="q" th:value="${q}" placeholder="Search name...">
+      <button class="btn btn-primary">Search</button>
+      <a class="btn btn-success ms-2" th:href="@{/categories/new}">+ New</a>
+    </form>
+  </div>
+  <table class="table table-striped table-hover">
+    <thead>
+    <tr><th>ID</th><th>Name</th><th></th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="category : ${categories}">
+      <td th:text="${category.categoryId}"></td>
+      <td th:text="${category.name}"></td>
+      <td class="text-nowrap">
+        <a class="btn btn-sm btn-outline-primary" th:href="@{|/categories/${category.categoryId}/edit|}">Edit</a>
+        <form th:action="@{|/categories/${category.categoryId}/delete|}" method="post" style="display:inline-block">
+          <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete category?')">Delete</button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</section>
+</body>
+</html>
