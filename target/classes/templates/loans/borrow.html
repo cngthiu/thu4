@@ -1,0 +1,30 @@
+<!-- src/main/resources/templates/loans/borrow.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="fragments/layout :: layout (~{::title}, ~{::section})">
+<head><title>Borrow</title></head>
+<body>
+<section>
+  <h3>Borrow a Book</h3>
+  <form method="post" th:action="@{/loans/borrow}">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Book ID</label>
+        <input class="form-control" name="bookId" required/>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Member ID</label>
+        <input class="form-control" name="memberId" required/>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Days</label>
+        <input class="form-control" name="days" value="14"/>
+      </div>
+    </div>
+    <div class="mt-3">
+      <a class="btn btn-secondary" th:href="@{/loans}">Back</a>
+      <button class="btn btn-primary">Borrow</button>
+    </div>
+  </form>
+</section>
+</body>
+</html>
