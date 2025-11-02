@@ -52,6 +52,17 @@ public class MemberService {
                 .fetch();
     }
 
+    public long countAll() {
+        return dsl.fetchCount(MEMBER);
+    }
+
+    public long countActive() {
+        return dsl.fetchCount(
+                dsl.selectFrom(MEMBER)
+                        .where(MEMBER.STATUS.eq(MemberStatus.ACTIVE))
+        );
+    }
+
     @Transactional
     public Long create(MemberDto dto) {
         MemberRecord record = dsl.newRecord(MEMBER);

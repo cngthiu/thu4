@@ -144,4 +144,16 @@ public class BookService {
             throw new IllegalArgumentException("Invalid book status: " + status, ex);
         }
     }
+
+    public long countAll() {
+        return dsl.fetchCount(BOOK);
+    }
+
+    public long countAvailable() {
+        return dsl.fetchCount(
+                dsl.selectFrom(BOOK)
+                        .where(BOOK.STOCK.gt(0)
+                                .and(BOOK.STATUS.eq(BookStatus.AVAILABLE)))
+        );
+    }
 }

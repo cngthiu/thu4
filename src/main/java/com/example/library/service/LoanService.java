@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,6 +27,8 @@ import static com.example.library.jooq.tables.Member.MEMBER;
 
 @Service
 public class LoanService {
+    private static final long FINE_PER_DAY = 5_000L;
+
     private final DSLContext dsl;
 
     public LoanService(DSLContext dsl) {
@@ -111,8 +114,10 @@ public class LoanService {
         LocalDateTime returnedAt = returnDate == null
                 ? LocalDateTime.now()
                 : returnDate.atTime(LocalTime.now());
+        BigDecimal fine = calculateFine(loan.getDueDate(), returnedAt);
         loan.setReturnDate(returnedAt);
         loan.setStatus(LoanStatus.RETURNED);
+        loan.setFineAmount(fine);
         loan.store();
 
         dsl.update(BOOK)
@@ -158,11 +163,13 @@ public class LoanService {
     }
 
     private void rejectIfMemberHasOutstandingLoans(Long memberId) {
+        LocalDateTime now = LocalDateTime.now();
         boolean hasDebt = dsl.fetchExists(
                 dsl.selectOne()
                         .from(LOAN)
                         .where(LOAN.MEMBER_ID.eq(memberId)
-                                .and(LOAN.STATUS.ne(LoanStatus.RETURNED)))
+                                .and(LOAN.RETURN_DATE.isNull())
+                                .and(LOAN.DUE_DATE.lt(now)))
         );
         if (hasDebt) {
             throw new IllegalStateException("Member has outstanding loans and cannot borrow more books");
@@ -193,5 +200,54 @@ public class LoanService {
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException("Invalid loan status: " + status, ex);
         }
+    }
+
+    private BigDecimal calculateFine(LocalDateTime due, LocalDateTime actual) {
+        if (due == null || actual == null || !actual.isAfter(due)) {
+            return BigDecimal.ZERO;
+        }
+        long days = ChronoUnit.DAYS.between(due.toLocalDate(), actual.toLocalDate());
+        if (days <= 0) {
+            days = 1;
+        }
+        return BigDecimal.valueOf(days * FINE_PER_DAY);
+    }
+
+    public long countBorrowedToday() {
+        LocalDate today = LocalDate.now();
+        return dsl.fetchCount(
+                dsl.selectFrom(LOAN)
+                        .where(LOAN.BORROW_DATE.between(today.atStartOfDay(), today.plusDays(1).atStartOfDay())
+                                .and(LOAN.STATUS.eq(LoanStatus.BORROWED)))
+        );
+    }
+
+    public long countOverdue() {
+        LocalDateTime now = LocalDateTime.now();
+        return dsl.fetchCount(
+                dsl.selectFrom(LOAN)
+                        .where(LOAN.RETURN_DATE.isNull()
+                                .and(LOAN.DUE_DATE.lt(now)))
+        );
+    }
+
+    public List<LoanListItem> findRecentLoans(int limit) {
+        return dsl.select(
+                        LOAN.LOAN_ID,
+                        LOAN.MEMBER_ID,
+                        MEMBER.FULL_NAME,
+                        LOAN.BOOK_ID,
+                        BOOK.TITLE,
+                        LOAN.BORROW_DATE,
+                        LOAN.DUE_DATE,
+                        LOAN.RETURN_DATE,
+                        LOAN.STATUS,
+                        LOAN.FINE_AMOUNT)
+                .from(LOAN)
+                .join(BOOK).on(LOAN.BOOK_ID.eq(BOOK.BOOK_ID))
+                .join(MEMBER).on(LOAN.MEMBER_ID.eq(MEMBER.MEMBER_ID))
+                .orderBy(LOAN.BORROW_DATE.desc())
+                .limit(limit)
+                .fetch(this::mapToLoanListItem);
     }
 }
