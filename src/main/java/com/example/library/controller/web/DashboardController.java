@@ -30,6 +30,12 @@ public class DashboardController {
         model.addAttribute("borrowedToday", loanService.countBorrowedToday());
         model.addAttribute("overdueLoans", loanService.countOverdue());
         model.addAttribute("recentLoans", loanService.findRecentLoans(5));
+        model.addAttribute("totalFineAmount", loanService.sumFineAmount());
+        model.addAttribute("borrowReturnData", loanService.borrowReturnStats(30));
+        model.addAttribute("topBooksData", loanService.topBorrowedBooks(10));
+        model.addAttribute("categoryBorrowData", loanService.borrowByCategory());
+        model.addAttribute("topMembersData", loanService.topMembers(10));
+        model.addAttribute("overdueTimelineData", loanService.overdueTimeline(12));
         return "dashboard/index";
     }
 }

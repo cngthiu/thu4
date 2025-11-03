@@ -16,7 +16,9 @@
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/AuthorDto.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/BookDto.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/BookListItem.java
+/media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/BorrowReturnStat.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/CategoryDto.java
+/media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/ChartDataPoint.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/LoanBorrowForm.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/LoanBorrowRequest.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/LoanFilter.java

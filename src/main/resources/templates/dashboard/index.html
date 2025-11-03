@@ -4,6 +4,7 @@
       th:replace="fragments/layout :: layout (~{::title}, ~{::section})">
 <head>
   <title>Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <section>
@@ -47,42 +48,167 @@
         </div>
       </div>
     </div>
+    <div class="col-md-3">
+      <div class="card text-bg-dark h-100">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2 text-uppercase">Total Fines</h6>
+          <h3 th:text="${#numbers.formatDecimal(totalFineAmount, 0, 0)}">0</h3>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">Recent Loans</div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-striped mb-0">
-          <thead class="table-light">
-          <tr>
-            <th>ID</th>
-            <th>Book</th>
-            <th>Member</th>
-            <th>Borrow</th>
-            <th>Due</th>
-            <th>Status</th>
-            <th>Fine</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="loan : ${recentLoans}">
-            <td th:text="${loan.loanId}"></td>
-            <td th:text="${loan.bookTitle}"></td>
-            <td th:text="${loan.memberName}"></td>
-            <td th:text="${loan.borrowDate != null ? #temporals.format(loan.borrowDate, 'yyyy-MM-dd HH:mm') : ''}"></td>
-            <td th:text="${loan.dueDate != null ? #temporals.format(loan.dueDate, 'yyyy-MM-dd HH:mm') : ''}"></td>
-            <td th:text="${loan.status}"></td>
-            <td th:text="${loan.fineAmount != null ? loan.fineAmount : 0}"></td>
-          </tr>
-          <tr th:if="${#lists.isEmpty(recentLoans)}">
-            <td colspan="7" class="text-center text-muted">No recent loans</td>
-          </tr>
-          </tbody>
-        </table>
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">Borrow vs Return Trend (30 days)</div>
+        <div class="card-body"><canvas id="borrowReturnChart" height="220"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">Overdue Loans by Month</div>
+        <div class="card-body"><canvas id="overdueTimelineChart" height="220"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">Top Borrowed Books</div>
+        <div class="card-body"><canvas id="topBooksChart" height="220"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">Borrow by Category</div>
+        <div class="card-body"><canvas id="categoryBorrowChart" height="220"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">Top Active Members</div>
+        <div class="card-body"><canvas id="topMembersChart" height="220"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">Recent Loans</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped mb-0">
+              <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Book</th>
+                <th>Member</th>
+                <th>Borrow</th>
+                <th>Due</th>
+                <th>Status</th>
+                <th>Fine</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="loan : ${recentLoans}">
+                <td th:text="${loan.loanId}"></td>
+                <td th:text="${loan.bookTitle}"></td>
+                <td th:text="${loan.memberName}"></td>
+                <td th:text="${loan.borrowDate != null ? #temporals.format(loan.borrowDate, 'yyyy-MM-dd HH:mm') : ''}"></td>
+                <td th:text="${loan.dueDate != null ? #temporals.format(loan.dueDate, 'yyyy-MM-dd HH:mm') : ''}"></td>
+                <td th:text="${loan.status}"></td>
+                <td th:text="${loan.fineAmount != null ? loan.fineAmount : 0}"></td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(recentLoans)}">
+                <td colspan="7" class="text-center text-muted">No recent loans</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
+
+<script th:inline="javascript">
+  const borrowReturnData = /*[[${borrowReturnData}]]*/ [];
+  const topBooksData = /*[[${topBooksData}]]*/ [];
+  const categoryData = /*[[${categoryBorrowData}]]*/ [];
+  const topMembersData = /*[[${topMembersData}]]*/ [];
+  const overdueTimelineData = /*[[${overdueTimelineData}]]*/ [];
+
+  const borrowLabels = borrowReturnData.map(item => item.period);
+  const borrowCounts = borrowReturnData.map(item => item.borrowed);
+  const returnCounts = borrowReturnData.map(item => item.returned);
+
+  new Chart(document.getElementById('borrowReturnChart'), {
+    type: 'line',
+    data: {
+      labels: borrowLabels,
+      datasets: [
+        { label: 'Borrowed', data: borrowCounts, borderColor: '#0d6efd', fill: false, tension: 0.3 },
+        { label: 'Returned', data: returnCounts, borderColor: '#198754', fill: false, tension: 0.3 }
+      ]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+
+  new Chart(document.getElementById('overdueTimelineChart'), {
+    type: 'line',
+    data: {
+      labels: overdueTimelineData.map(item => item.label),
+      datasets: [{
+        label: 'Overdue',
+        data: overdueTimelineData.map(item => item.value),
+        borderColor: '#dc3545',
+        backgroundColor: 'rgba(220,53,69,0.2)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+
+  new Chart(document.getElementById('topBooksChart'), {
+    type: 'bar',
+    data: {
+      labels: topBooksData.map(item => item.label),
+      datasets: [{
+        label: 'Borrow count',
+        data: topBooksData.map(item => item.value),
+        backgroundColor: '#0dcaf0'
+      }]
+    },
+    options: { indexAxis: 'y', scales: { x: { beginAtZero: true } } }
+  });
+
+  new Chart(document.getElementById('categoryBorrowChart'), {
+    type: 'doughnut',
+    data: {
+      labels: categoryData.map(item => item.label),
+      datasets: [{
+        data: categoryData.map(item => item.value),
+        backgroundColor: ['#0d6efd', '#6f42c1', '#fd7e14', '#20c997', '#ffc107', '#dc3545', '#198754']
+      }]
+    }
+  });
+
+  new Chart(document.getElementById('topMembersChart'), {
+    type: 'bar',
+    data: {
+      labels: topMembersData.map(item => item.label),
+      datasets: [{
+        label: 'Loans',
+        data: topMembersData.map(item => item.value),
+        backgroundColor: '#6610f2'
+      }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+  });
+</script>
 </body>
 </html>

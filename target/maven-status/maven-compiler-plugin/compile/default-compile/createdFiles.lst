@@ -1,6 +1,7 @@
 com/example/library/service/BookService.class
 com/example/library/jooq/tables/records/LoanRecord.class
 com/example/library/dto/LoanBorrowForm.class
+com/example/library/dto/ChartDataPoint.class
 com/example/library/scheduler/EmailNotificationScheduler.class
 com/example/library/jooq/Indexes.class
 com/example/library/jooq/Booksdb.class
@@ -8,6 +9,7 @@ com/example/library/jooq/tables/NotificationHistory.class
 com/example/library/jooq/tables/pojos/Author.class
 com/example/library/util/Timezones.class
 com/example/library/config/JooqConfig.class
+com/example/library/dto/BorrowReturnStat.class
 com/example/library/jooq/tables/records/NotificationRecord.class
 com/example/library/jooq/tables/pojos/Category.class
 com/example/library/controller/api/LoanApiController.class
