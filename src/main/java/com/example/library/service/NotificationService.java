@@ -2,6 +2,8 @@
 package com.example.library.service;
 
 import com.example.library.config.MailConfig;
+import com.example.library.jooq.tables.records.NotificationHistoryRecord;
+import com.example.library.jooq.tables.records.NotificationRecord;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.springframework.mail.MailException;
@@ -98,4 +100,55 @@ public class NotificationService {
     }
 
     public static String newProcessId() { return UUID.randomUUID().toString(); }
+
+    @Transactional
+    public boolean queueNotification(Long memberId, String email, String subject, String body) {
+        if (email == null || email.isBlank() || subject == null || body == null) {
+            return false;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime recent = now.minusHours(12);
+        boolean exists = dsl.fetchExists(
+                dsl.selectOne().from(NOTIFICATION)
+                        .where(NOTIFICATION.MEMBER_ID.eq(memberId)
+                                .and(NOTIFICATION.SUBJECT.eq(subject))
+                                .and(NOTIFICATION.CREATED_AT.gt(recent)))
+        );
+        if (!exists) {
+            exists = dsl.fetchExists(
+                    dsl.selectOne().from(NOTIFICATION_HISTORY)
+                            .where(NOTIFICATION_HISTORY.MEMBER_ID.eq(memberId)
+                                    .and(NOTIFICATION_HISTORY.SUBJECT.eq(subject))
+                                    .and(NOTIFICATION_HISTORY.CREATED_AT.gt(recent)))
+            );
+        }
+        if (exists) {
+            return false;
+        }
+        dsl.insertInto(NOTIFICATION)
+                .set(NOTIFICATION.MEMBER_ID, memberId)
+                .set(NOTIFICATION.EMAIL, email)
+                .set(NOTIFICATION.SUBJECT, subject)
+                .set(NOTIFICATION.BODY, body)
+                .set(NOTIFICATION.CREATED_AT, now)
+                .execute();
+        return true;
+    }
+
+    public List<NotificationRecord> findPending() {
+        return dsl.selectFrom(NOTIFICATION)
+                .orderBy(NOTIFICATION.CREATED_AT.desc())
+                .fetch();
+    }
+
+    public List<NotificationHistoryRecord> findRecentHistory(int limit) {
+        return dsl.selectFrom(NOTIFICATION_HISTORY)
+                .orderBy(NOTIFICATION_HISTORY.CREATED_AT.desc())
+                .limit(limit)
+                .fetch();
+    }
+
+    public long countPending() {
+        return dsl.fetchCount(NOTIFICATION);
+    }
 }

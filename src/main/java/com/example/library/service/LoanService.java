@@ -4,6 +4,7 @@ package com.example.library.service;
 import com.example.library.dto.LoanListItem;
 import com.example.library.jooq.enums.LoanStatus;
 import com.example.library.jooq.tables.records.LoanRecord;
+import com.example.library.service.NotificationService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,9 +31,11 @@ public class LoanService {
     private static final long FINE_PER_DAY = 5_000L;
 
     private final DSLContext dsl;
+    private final NotificationService notificationService;
 
-    public LoanService(DSLContext dsl) {
+    public LoanService(DSLContext dsl, NotificationService notificationService) {
         this.dsl = dsl;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -124,6 +127,33 @@ public class LoanService {
                 .set(BOOK.STOCK, BOOK.STOCK.plus(1))
                 .where(BOOK.BOOK_ID.eq(loan.getBookId()))
                 .execute();
+
+        if (fine.compareTo(BigDecimal.ZERO) > 0) {
+            var member = dsl.select(MEMBER.EMAIL, MEMBER.FULL_NAME)
+                    .from(MEMBER)
+                    .where(MEMBER.MEMBER_ID.eq(loan.getMemberId()))
+                    .fetchOne();
+            if (member != null) {
+                String subject = "[Library] Fine notice for loan #" + loanId;
+                String body = String.format(
+                        Locale.ENGLISH,
+                        "Xin chào %s,%n%n" +
+                                "Phiếu mượn #%d đã được trả vào %s.%n" +
+                                "Phí phạt phát sinh: %s VND.%n%n" +
+                                "Vui lòng thanh toán phí phạt tại thư viện. Cảm ơn bạn!",
+                        member.get(MEMBER.FULL_NAME),
+                        loanId,
+                        returnedAt.toLocalDate(),
+                        String.format(Locale.ENGLISH, "%,d", fine.longValue())
+                );
+                notificationService.queueNotification(
+                        loan.getMemberId(),
+                        member.get(MEMBER.EMAIL),
+                        subject,
+                        body
+                );
+            }
+        }
     }
 
     public List<LoanListItem> list(String q, String status, int page, int size) {

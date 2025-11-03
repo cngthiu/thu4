@@ -1,0 +1,89 @@
+<!-- src/main/resources/templates/notifications/index.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="fragments/layout :: layout (~{::title}, ~{::section})">
+<head>
+  <title>Notifications</title>
+</head>
+<body>
+<section>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Notifications</h3>
+    <span class="badge text-bg-primary" th:text="${pendingCount} + ' pending'">0 pending</span>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">Pending Queue</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped mb-0">
+          <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Member ID</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Retry</th>
+            <th>Locked At</th>
+            <th>Created At</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="n : ${pending}">
+            <td th:text="${n.id}"></td>
+            <td th:text="${n.memberId}"></td>
+            <td th:text="${n.email}"></td>
+            <td th:text="${n.subject}"></td>
+            <td th:text="${n.retryCount}"></td>
+            <td th:text="${n.lockedAt}"></td>
+            <td th:text="${n.createdAt}"></td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(pending)}">
+            <td colspan="7" class="text-center text-muted">Queue empty</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Recent History</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped mb-0">
+          <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Member ID</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Success</th>
+            <th>Error</th>
+            <th>Created At</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="h : ${history}">
+            <td th:text="${h.id}"></td>
+            <td th:text="${h.memberId}"></td>
+            <td th:text="${h.email}"></td>
+            <td th:text="${h.subject}"></td>
+            <td>
+              <span th:if="${h.success == 1}" class="badge text-bg-success">Success</span>
+              <span th:if="${h.success != 1}" class="badge text-bg-danger">Failed</span>
+            </td>
+            <td th:text="${h.errorMessage}"></td>
+            <td th:text="${h.createdAt}"></td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(history)}">
+            <td colspan="7" class="text-center text-muted">No history</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+</body>
+</html>

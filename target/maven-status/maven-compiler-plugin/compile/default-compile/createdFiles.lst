@@ -48,6 +48,7 @@ com/example/library/dto/BookDto.class
 com/example/library/jooq/tables/pojos/Member.class
 com/example/library/jooq/tables/Loan.class
 com/example/library/jooq/DefaultCatalog.class
+com/example/library/controller/web/NotificationsPageController.class
 com/example/library/service/CategoryService.class
 com/example/library/service/NotificationService.class
 com/example/library/controller/web/BooksPageController.class

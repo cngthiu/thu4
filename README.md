@@ -6,14 +6,20 @@ Không dùng JPA/Hibernate. Không barcode/QR. Không reservation/hold. Tz: `Asi
 
 ## 1 Kiến trúc
 
-- **Web (Thymeleaf)**: `/books`, `/members`, `/loans` (list + CRUD, mượn nhanh, lọc).
+- **Web (Thymeleaf)**: `/dashboard` (tổng quan), `/books`, `/members`, `/loans`, `/notifications` (giám sát thông báo, hàng đợi email).
 - **REST API**:
   - Books: `GET /api/books`, `POST /api/books`, `PUT /api/books/{id}`, `DELETE /api/books/{id}`
   - Members: tương tự.
   - Loans: `POST /api/loans/borrow?bookId={id}&memberId={id}&days=14`, `POST /api/loans/{loanId}/return`, `GET /api/loans`
 - **Service layer (jOOQ + DSLContext)**: BookService, MemberService, LoanService, NotificationService.
+- **Thông báo & Email**
+  - Template động cho **nhắc sắp đến hạn trả**, **thông báo quá hạn**, **thông báo phạt**.
+  - Lưu và retry qua `NOTIFICATION`, `NOTIFICATION_HISTORY` (cơ chế claim/steal an toàn).
 - **Schedulers**:
-  - `OverdueScheduler` (`0 0 8 * * *`): đánh dấu quá hạn + tính phạt, tạo `NOTIFICATION` nếu chưa có.
+  - `OverdueScheduler` (`0 0 8 * * *`):
+    - Đánh dấu LOAN quá hạn, tính/áp dụng `FINE_AMOUNT` (5.000đ/ngày).
+    - Gửi nhắc nhở các phiếu mượn còn ≤1 ngày tới hạn.
+    - Lập thông báo quá hạn nếu chưa có pending 12h gần nhất.
   - `EmailNotificationScheduler` (`0 */5 * * * *`): claim/steal batch (50), gửi mail, archive kết quả.
 - **DB**: xem `sql/001_ddl.sql`, `sql/002_sample_data.sql`.
 
@@ -118,7 +124,7 @@ mvn spring-boot:run
   spring.mail.properties.mail.smtp.starttls.enable=true
 - Nếu chưa cấu hình SMTP, scheduler email chỉ log cảnh báo, không ném exception.
 
-# 7 Cron & Cơ chế NOTIFICATION concurrency-safe
+# 7 Cron & hệ thống NOTIFICATION concurrency-safe
 
 - claimBatch(processId, timeoutSec=300, limit=50):
   - Steal các bản ghi lock quá TIMEOUT_SEC & RETRY_COUNT < 3.
@@ -127,6 +133,10 @@ mvn spring-boot:run
 - Gửi mail xong:
   - Thành công: xóa khỏi NOTIFICATION, ghi NOTIFICATION_HISTORY(SUCCESS=true).
   - Thất bại: ghi LAST_ERROR, LAST_ATTEMPT_AT, bỏ lock; nếu RETRY_COUNT >= 3 → archiveExhausted vào NOTIFICATION_HISTORY(SUCCESS=false) rồi xóa khỏi NOTIFICATION.
+- Các template thông báo hiện có:
+  - **Reminder** (due soon ≤24h)
+  - **Overdue** (quá hạn, kèm số ngày & phí phạt hiện tại)
+  - **Fine notice** (trả sách nhưng còn phí phạt)
 
 ---
 
@@ -385,3 +395,24 @@ CREATE TABLE IF NOT EXISTS NOTIFICATION_HISTORY (
 );
 
 ```
+-Thông báo & Email (Notification System)
+Gửi email tự động(có template tùy nội dung thông báo):
+Nhắc sắp đến hạn trả
+Thông báo quá hạn
+Thông báo phạt
+Dựa trên các bảng như NOTIFICATION và NOTIFICATION_HISTORY
+- Lịch trình tự động (Schedulers / Cron jobs)
+OverdueScheduler chạy mỗi ngày → đánh dấu sách quá hạn
+EmailNotificationScheduler chạy mỗi 5 phút → gửi thông báo email
+
+# SCHEDULERS (CRON)
+- OverdueScheduler: chạy 08:00 hằng ngày (Asia/Ho_Chi_Minh)
+  - Đánh dấu LOAN quá hạn, tính/cập nhật FINE_AMOUNT.
+  - Với mỗi LOAN quá hạn, nếu chưa có thông báo pending thì tạo bản ghi vào NOTIFICATION (subject/body mẫu).
+- EmailNotificationScheduler: chạy mỗi 5 phút (Asia/Ho_Chi_Minh)
+  - claimBatch(processId, timeoutSec=300, limit=50) theo cơ chế:
+    - “Steal” các bản ghi bị lock quá TIMEOUT_SEC và RETRY_COUNT < 3 (tăng retry, gán PROCESS_ID).
+    - “Claim” các bản ghi chưa lock RETRY_COUNT < 3 (tăng retry, gán PROCESS_ID).
+  - Gửi email qua Spring Mail.
+  - Thành công: xóa khỏi NOTIFICATION, chèn vào NOTIFICATION_HISTORY (SUCCESS=true).
+  - Thất bại: ghi LAST_ERROR, LAST_ATTEMPT_AT, bỏ lock; nếu RETRY_COUNT >= 3 → archiveExhausted (NOTIFICATION_HISTORY với SUCCESS=false), xóa khỏi NOTIFICATION.
