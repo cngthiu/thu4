@@ -1,8 +1,13 @@
 package com.example.library.controller.web;
 
+import com.example.library.dto.BorrowReturnStat;
+import com.example.library.dto.ChartDataPoint;
 import com.example.library.service.BookService;
 import com.example.library.service.LoanService;
 import com.example.library.service.MemberService;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,11 +36,28 @@ public class DashboardController {
         model.addAttribute("overdueLoans", loanService.countOverdue());
         model.addAttribute("recentLoans", loanService.findRecentLoans(5));
         model.addAttribute("totalFineAmount", loanService.sumFineAmount());
-        model.addAttribute("borrowReturnData", loanService.borrowReturnStats(30));
-        model.addAttribute("topBooksData", loanService.topBorrowedBooks(10));
-        model.addAttribute("categoryBorrowData", loanService.borrowByCategory());
-        model.addAttribute("topMembersData", loanService.topMembers(10));
-        model.addAttribute("overdueTimelineData", loanService.overdueTimeline(12));
+        model.addAttribute("borrowReturnData", toBorrowReturnSeries(loanService.borrowReturnStats(30)));
+        model.addAttribute("topBooksData", toChartSeries(loanService.topBorrowedBooks(10)));
+        model.addAttribute("categoryBorrowData", toChartSeries(loanService.borrowByCategory()));
+        model.addAttribute("topMembersData", toChartSeries(loanService.topMembers(10)));
+        model.addAttribute("overdueTimelineData", toChartSeries(loanService.overdueTimeline(12)));
         return "dashboard/index";
+    }
+
+    private List<Map<String, Object>> toBorrowReturnSeries(List<BorrowReturnStat> stats) {
+        return stats.stream()
+                .map(s -> Map.<String, Object>of(
+                        "period", s.period(),
+                        "borrowed", s.borrowed(),
+                        "returned", s.returned()))
+                .collect(Collectors.toList());
+    }
+
+    private List<Map<String, Object>> toChartSeries(List<ChartDataPoint> points) {
+        return points.stream()
+                .map(p -> Map.<String, Object>of(
+                        "label", p.label(),
+                        "value", p.value()))
+                .collect(Collectors.toList());
     }
 }

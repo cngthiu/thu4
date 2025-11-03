@@ -10,6 +10,7 @@
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/web/BooksPageController.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/web/CategoriesPageController.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/web/DashboardController.java
+/media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/web/FaviconController.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/web/LoansPageController.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/web/MembersPageController.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/web/NotificationsPageController.java

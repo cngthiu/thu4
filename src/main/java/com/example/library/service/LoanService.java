@@ -13,12 +13,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -296,26 +297,37 @@ public class LoanService {
 
     public List<BorrowReturnStat> borrowReturnStats(int days) {
         LocalDate start = LocalDate.now().minusDays(days - 1L);
-        Field<LocalDate> borrowDay = DSL.field("DATE({0})", LocalDate.class, LOAN.BORROW_DATE);
-        Field<LocalDate> returnDay = DSL.field("DATE({0})", LocalDate.class, LOAN.RETURN_DATE);
-
-        Map<LocalDate, Long> borrowCounts = new HashMap<>();
-        dsl.select(borrowDay.as("d"), DSL.count().as("c"))
+        Field<LocalDate> borrowDay = LOAN.BORROW_DATE.cast(LocalDate.class);
+        Field<Integer> borrowCountField = DSL.count();
+        Map<LocalDate, Long> borrowCounts = dsl.select(borrowDay, borrowCountField)
                 .from(LOAN)
                 .where(LOAN.BORROW_DATE.isNotNull()
                         .and(LOAN.BORROW_DATE.ge(start.atStartOfDay())))
                 .groupBy(borrowDay)
                 .fetch()
-                .forEach(r -> borrowCounts.put(r.get("d", LocalDate.class), r.get("c", Long.class)));
+                .stream()
+                .collect(Collectors.toMap(
+                        r -> r.get(borrowDay),
+                        r -> r.get(borrowCountField).longValue(),
+                        Long::sum,
+                        LinkedHashMap::new
+                ));
 
-        Map<LocalDate, Long> returnCounts = new HashMap<>();
-        dsl.select(returnDay.as("d"), DSL.count().as("c"))
+        Field<LocalDate> returnDay = LOAN.RETURN_DATE.cast(LocalDate.class);
+        Field<Integer> returnCountField = DSL.count();
+        Map<LocalDate, Long> returnCounts = dsl.select(returnDay, returnCountField)
                 .from(LOAN)
                 .where(LOAN.RETURN_DATE.isNotNull()
                         .and(LOAN.RETURN_DATE.ge(start.atStartOfDay())))
                 .groupBy(returnDay)
                 .fetch()
-                .forEach(r -> returnCounts.put(r.get("d", LocalDate.class), r.get("c", Long.class)));
+                .stream()
+                .collect(Collectors.toMap(
+                        r -> r.get(returnDay),
+                        r -> r.get(returnCountField).longValue(),
+                        Long::sum,
+                        LinkedHashMap::new
+                ));
 
         List<BorrowReturnStat> stats = new ArrayList<>();
         LocalDate current = start;
@@ -330,11 +342,12 @@ public class LoanService {
     }
 
     public List<ChartDataPoint> topBorrowedBooks(int limit) {
-        return dsl.select(BOOK.TITLE.as("label"), DSL.count().as("value"))
+        Field<Integer> countField = DSL.count();
+        return dsl.select(BOOK.TITLE.as("label"), countField.as("value"))
                 .from(LOAN)
                 .join(BOOK).on(LOAN.BOOK_ID.eq(BOOK.BOOK_ID))
                 .groupBy(BOOK.BOOK_ID, BOOK.TITLE)
-                .orderBy(DSL.count().desc())
+                .orderBy(countField.desc())
                 .limit(limit)
                 .fetch(r -> new ChartDataPoint(
                         r.get("label", String.class),
@@ -343,12 +356,13 @@ public class LoanService {
     }
 
     public List<ChartDataPoint> borrowByCategory() {
-        return dsl.select(CATEGORY.NAME.as("label"), DSL.count().as("value"))
+        Field<Integer> countField = DSL.count();
+        return dsl.select(CATEGORY.NAME.as("label"), countField.as("value"))
                 .from(LOAN)
                 .join(BOOK).on(LOAN.BOOK_ID.eq(BOOK.BOOK_ID))
                 .join(CATEGORY).on(BOOK.CATEGORY_ID.eq(CATEGORY.CATEGORY_ID))
                 .groupBy(CATEGORY.CATEGORY_ID, CATEGORY.NAME)
-                .orderBy(DSL.count().desc())
+                .orderBy(countField.desc())
                 .fetch(r -> new ChartDataPoint(
                         r.get("label", String.class),
                         r.get("value", Number.class).longValue()
@@ -356,12 +370,13 @@ public class LoanService {
     }
 
     public List<ChartDataPoint> topMembers(int limit) {
-        return dsl.select(MEMBER.FULL_NAME.as("label"), DSL.count().as("value"))
+        Field<Integer> countField = DSL.count();
+        return dsl.select(MEMBER.FULL_NAME.as("label"), countField.as("value"))
                 .from(LOAN)
                 .join(MEMBER).on(LOAN.MEMBER_ID.eq(MEMBER.MEMBER_ID))
                 .where(MEMBER.FULL_NAME.isNotNull())
                 .groupBy(MEMBER.MEMBER_ID, MEMBER.FULL_NAME)
-                .orderBy(DSL.count().desc())
+                .orderBy(countField.desc())
                 .limit(limit)
                 .fetch(r -> new ChartDataPoint(
                         r.get("label", String.class),
@@ -371,7 +386,7 @@ public class LoanService {
 
     public List<ChartDataPoint> overdueTimeline(int months) {
         LocalDate start = LocalDate.now().minusMonths(months - 1L).withDayOfMonth(1);
-        Field<String> period = DSL.field("DATE_FORMAT({0}, {1})", String.class, LOAN.RETURN_DATE, DSL.inline("%Y-%m"));
+        Field<String> period = DSL.field("DATE_FORMAT({0}, {1})", String.class, LOAN.DUE_DATE, DSL.inline("%Y-%m"));
         return dsl.select(period.as("label"), DSL.count().as("value"))
                 .from(LOAN)
                 .where(LOAN.DUE_DATE.isNotNull()
