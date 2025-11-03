@@ -2,7 +2,7 @@
 <configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.19.0.xsd">
   <jdbc>
     <driver>com.mysql.cj.jdbc.Driver</driver>
-    <url>jdbc:mysql://localhost:3306/booksdb?useSSL=false&amp;serverTimezone=Asia/Ho_Chi_Minh</url>
+    <url>jdbc:mysql://localhost:3306/booksdb?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;serverTimezone=Asia/Ho_Chi_Minh</url>
     <user>root</user>
     <password>thieulk23</password>
   </jdbc>
