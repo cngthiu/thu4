@@ -4,6 +4,8 @@ import com.example.library.dto.BookDto;
 import com.example.library.dto.BookListItem;
 import com.example.library.jooq.enums.BookStatus;
 import com.example.library.jooq.tables.records.BookRecord;
+import com.example.library.dto.PagedResult;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import org.jooq.Condition;
@@ -28,22 +30,58 @@ public class BookService {
     }
 
     public List<BookListItem> search(String q, int page, int size, SortField<?> sortField) {
-        Condition condition = DSL.trueCondition();
-        if (q != null && !q.isBlank()) {
-            String keyword = "%" + q.trim() + "%";
-            condition = condition.and(
-                    BOOK.TITLE.likeIgnoreCase(keyword)
-                            .or(AUTHOR.NAME.likeIgnoreCase(keyword))
-                            .or(CATEGORY.NAME.likeIgnoreCase(keyword))
-            );
-        }
-        return fetchBooks(condition, sortField, size, page * size);
+        return search(q, null, null, null, null, null, page, size, sortField).items();
+    }
+
+    public PagedResult<BookListItem> search(String q,
+                                            Long authorId,
+                                            Long categoryId,
+                                            BookStatus status,
+                                            BigDecimal minPrice,
+                                            BigDecimal maxPrice,
+                                            int page,
+                                            int size,
+                                            SortField<?> sortField) {
+        Condition condition = buildCondition(q, authorId, categoryId, status, minPrice, maxPrice);
+        int offset = Math.max(page, 0) * Math.max(size, 1);
+        SortField<?> order = sortField == null ? BOOK.TITLE.asc() : sortField;
+
+        List<BookListItem> items = baseSelect()
+                .where(condition)
+                .orderBy(order)
+                .limit(size)
+                .offset(offset)
+                .fetch(this::mapToBookListItem);
+
+        Long total = dsl.select(DSL.count())
+                .from(BOOK)
+                .leftJoin(AUTHOR).on(BOOK.AUTHOR_ID.eq(AUTHOR.AUTHOR_ID))
+                .leftJoin(CATEGORY).on(BOOK.CATEGORY_ID.eq(CATEGORY.CATEGORY_ID))
+                .where(condition)
+                .fetchOne(0, Long.class);
+
+        return new PagedResult<>(items, total == null ? 0 : total, page, size);
     }
 
     public List<BookListItem> listAvailable() {
         Condition condition = BOOK.STOCK.gt(0)
                 .and(BOOK.STATUS.eq(BookStatus.AVAILABLE));
         return fetchBooks(condition, BOOK.TITLE.asc(), Integer.MAX_VALUE, 0);
+    }
+
+    public List<BookListItem> searchAll(String q,
+                                        Long authorId,
+                                        Long categoryId,
+                                        BookStatus status,
+                                        BigDecimal minPrice,
+                                        BigDecimal maxPrice,
+                                        SortField<?> sortField) {
+        Condition condition = buildCondition(q, authorId, categoryId, status, minPrice, maxPrice);
+        SortField<?> order = sortField == null ? BOOK.TITLE.asc() : sortField;
+        return baseSelect()
+                .where(condition)
+                .orderBy(order)
+                .fetch(this::mapToBookListItem);
     }
 
     private List<BookListItem> fetchBooks(Condition condition, SortField<?> sortField, int limit, int offset) {
@@ -70,6 +108,39 @@ public class BookService {
                 .from(BOOK)
                 .leftJoin(AUTHOR).on(BOOK.AUTHOR_ID.eq(AUTHOR.AUTHOR_ID))
                 .leftJoin(CATEGORY).on(BOOK.CATEGORY_ID.eq(CATEGORY.CATEGORY_ID));
+    }
+
+    private Condition buildCondition(String q,
+                                     Long authorId,
+                                     Long categoryId,
+                                     BookStatus status,
+                                     BigDecimal minPrice,
+                                     BigDecimal maxPrice) {
+        Condition condition = DSL.trueCondition();
+        if (q != null && !q.isBlank()) {
+            String keyword = "%" + q.trim() + "%";
+            condition = condition.and(
+                    BOOK.TITLE.likeIgnoreCase(keyword)
+                            .or(AUTHOR.NAME.likeIgnoreCase(keyword))
+                            .or(CATEGORY.NAME.likeIgnoreCase(keyword))
+            );
+        }
+        if (authorId != null) {
+            condition = condition.and(BOOK.AUTHOR_ID.eq(authorId));
+        }
+        if (categoryId != null) {
+            condition = condition.and(BOOK.CATEGORY_ID.eq(categoryId));
+        }
+        if (status != null) {
+            condition = condition.and(BOOK.STATUS.eq(status));
+        }
+        if (minPrice != null) {
+            condition = condition.and(BOOK.PRICE.ge(minPrice));
+        }
+        if (maxPrice != null) {
+            condition = condition.and(BOOK.PRICE.le(maxPrice));
+        }
+        return condition;
     }
 
     private BookListItem mapToBookListItem(Record record) {

@@ -7,7 +7,6 @@
 </head>
 <body>
 <section>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Dashboard</h3>
@@ -133,80 +132,175 @@
       </div>
     </div>
   </div>
-  <script th:inline="javascript">
+<script th:inline="javascript">
   const borrowReturnData = /*[[${borrowReturnData}]]*/ [];
   const topBooksData = /*[[${topBooksData}]]*/ [];
   const categoryData = /*[[${categoryBorrowData}]]*/ [];
   const topMembersData = /*[[${topMembersData}]]*/ [];
   const overdueTimelineData = /*[[${overdueTimelineData}]]*/ [];
 
-  const borrowLabels = borrowReturnData.map(item => item.period);
-  const borrowCounts = borrowReturnData.map(item => item.borrowed);
-  const returnCounts = borrowReturnData.map(item => item.returned);
-
-  new Chart(document.getElementById('borrowReturnChart'), {
-    type: 'line',
-    data: {
-      labels: borrowLabels,
-      datasets: [
-        { label: 'Borrowed', data: borrowCounts, borderColor: '#0d6efd', fill: false, tension: 0.3 },
-        { label: 'Returned', data: returnCounts, borderColor: '#198754', fill: false, tension: 0.3 }
-      ]
+  const chartConfigs = [
+    {
+      id: 'borrowReturnChart',
+      hasData: borrowReturnData.length > 0,
+      build: () => ({
+        type: 'line',
+        data: {
+          labels: borrowReturnData.map(item => item.period),
+          datasets: [
+            { label: 'Borrowed', data: borrowReturnData.map(item => item.borrowed), borderColor: '#0d6efd', fill: false, tension: 0.3 },
+            { label: 'Returned', data: borrowReturnData.map(item => item.returned), borderColor: '#198754', fill: false, tension: 0.3 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      })
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
-  });
-
-  new Chart(document.getElementById('overdueTimelineChart'), {
-    type: 'line',
-    data: {
-      labels: overdueTimelineData.map(item => item.label),
-      datasets: [{
-        label: 'Overdue',
-        data: overdueTimelineData.map(item => item.value),
-        borderColor: '#dc3545',
-        backgroundColor: 'rgba(220,53,69,0.2)',
-        tension: 0.3,
-        fill: true
-      }]
+    {
+      id: 'overdueTimelineChart',
+      hasData: overdueTimelineData.length > 0,
+      build: () => ({
+        type: 'line',
+        data: {
+          labels: overdueTimelineData.map(item => item.label),
+          datasets: [{
+            label: 'Overdue',
+            data: overdueTimelineData.map(item => item.value),
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220,53,69,0.2)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      })
     },
-    options: { responsive: true, scales: { y: { beginAtZero: true } } }
-  });
-
-  new Chart(document.getElementById('topBooksChart'), {
-    type: 'bar',
-    data: {
-      labels: topBooksData.map(item => item.label),
-      datasets: [{
-        label: 'Borrow count',
-        data: topBooksData.map(item => item.value),
-        backgroundColor: '#0dcaf0'
-      }]
+    {
+      id: 'topBooksChart',
+      hasData: topBooksData.length > 0,
+      build: () => ({
+        type: 'bar',
+        data: {
+          labels: topBooksData.map(item => item.label),
+          datasets: [{
+            label: 'Borrow count',
+            data: topBooksData.map(item => item.value),
+            backgroundColor: '#0dcaf0'
+          }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } } }
+      })
     },
-    options: { indexAxis: 'y', scales: { x: { beginAtZero: true } } }
-  });
-
-  new Chart(document.getElementById('categoryBorrowChart'), {
-    type: 'doughnut',
-    data: {
-      labels: categoryData.map(item => item.label),
-      datasets: [{
-        data: categoryData.map(item => item.value),
-        backgroundColor: ['#0d6efd', '#6f42c1', '#fd7e14', '#20c997', '#ffc107', '#dc3545', '#198754']
-      }]
+    {
+      id: 'categoryBorrowChart',
+      hasData: categoryData.length > 0,
+      build: () => ({
+        type: 'doughnut',
+        data: {
+          labels: categoryData.map(item => item.label),
+          datasets: [{
+            data: categoryData.map(item => item.value),
+            backgroundColor: ['#0d6efd', '#6f42c1', '#fd7e14', '#20c997', '#ffc107', '#dc3545', '#198754']
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      })
+    },
+    {
+      id: 'topMembersChart',
+      hasData: topMembersData.length > 0,
+      build: () => ({
+        type: 'bar',
+        data: {
+          labels: topMembersData.map(item => item.label),
+          datasets: [{
+            label: 'Loans',
+            data: topMembersData.map(item => item.value),
+            backgroundColor: '#6610f2'
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      })
     }
-  });
+  ];
 
-  new Chart(document.getElementById('topMembersChart'), {
-    type: 'bar',
-    data: {
-      labels: topMembersData.map(item => item.label),
-      datasets: [{
-        label: 'Loans',
-        data: topMembersData.map(item => item.value),
-        backgroundColor: '#6610f2'
-      }]
-    },
-    options: { scales: { y: { beginAtZero: true } } }
+  let chartJsLoader;
+  const ensureChartJs = () => {
+    if (window.Chart) {
+      return Promise.resolve();
+    }
+    if (!chartJsLoader) {
+      chartJsLoader = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+      });
+    }
+    return chartJsLoader;
+  };
+
+  const showEmptyState = (canvasId) => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+      return;
+    }
+    const wrapper = canvas.closest('.card-body');
+    if (!wrapper || wrapper.querySelector('.chart-empty')) {
+      return;
+    }
+    canvas.classList.add('d-none');
+    const placeholder = document.createElement('div');
+    placeholder.className = 'chart-empty text-muted text-center py-5 small text-uppercase fw-semibold';
+    placeholder.textContent = 'No data to visualise yet';
+    wrapper.appendChild(placeholder);
+  };
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) {
+        return;
+      }
+      const config = chartConfigs.find(item => item.id === entry.target.id);
+      if (!config) {
+        return;
+      }
+      observer.unobserve(entry.target);
+      if (!config.hasData) {
+        showEmptyState(config.id);
+        return;
+      }
+      ensureChartJs().then(() => {
+        if (config.instance) {
+          return;
+        }
+        const canvas = document.getElementById(config.id);
+        if (!canvas) {
+          return;
+        }
+        const ctx = canvas.getContext('2d');
+        config.instance = new Chart(ctx, config.build());
+      }).catch(() => showEmptyState(config.id));
+    });
+  }, { rootMargin: '0px 0px -20% 0px' });
+
+  chartConfigs.forEach(config => {
+    const canvas = document.getElementById(config.id);
+    if (!canvas) {
+      return;
+    }
+    observer.observe(canvas);
+    if (config.hasData && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      ensureChartJs().then(() => {
+        if (!config.instance) {
+          const ctx = canvas.getContext('2d');
+          config.instance = new Chart(ctx, config.build());
+        }
+      });
+    } else if (!config.hasData) {
+      showEmptyState(config.id);
+    }
   });
 </script>
 </section>

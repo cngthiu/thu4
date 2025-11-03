@@ -1,0 +1,241 @@
+/* src/main/resources/static/css/app.css */
+
+:root {
+    --app-sidebar-width: 250px;
+    --app-transition: 0.35s ease;
+    --app-bg: #f5f7fb;
+}
+
+body.app-body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--app-bg);
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color var(--app-transition);
+}
+
+.app-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 1090;
+    background: rgba(25, 26, 35, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transition: opacity var(--app-transition);
+}
+
+.app-shell {
+    min-height: 100vh;
+    transition: margin-left var(--app-transition);
+}
+
+.app-sidebar {
+    width: var(--app-sidebar-width);
+    background: linear-gradient(180deg, #212b46 0%, #131a2d 100%);
+    color: #d8dcf1;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--app-transition);
+    z-index: 1030;
+}
+
+.app-brand {
+    padding: 1.25rem 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-brand-link {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.app-brand-icon {
+    font-size: 1.5rem;
+}
+
+.app-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0.75rem;
+    gap: 0.25rem;
+}
+
+.app-nav-link {
+    color: #c6cae9;
+    text-decoration: none;
+    border-radius: 0.75rem;
+    padding: 0.65rem 1rem;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.app-nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    transform: translateX(2px);
+}
+
+.app-nav-link.active {
+    background: linear-gradient(90deg, #566dff, #8f9bff);
+    color: #fff;
+    box-shadow: 0 12px 20px -12px rgba(86, 109, 255, 0.8);
+}
+
+.app-sidebar-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.app-main {
+    min-height: 100vh;
+}
+
+.app-header {
+    background-color: #ffffff;
+    padding: 0.85rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.app-header-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2430;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.app-content {
+    flex-grow: 1;
+    padding: 1.5rem;
+}
+
+.app-content-inner {
+    min-height: calc(100vh - 6rem);
+    animation: fadeInUp 0.45s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-card {
+    border-radius: 1rem;
+    border: none;
+    box-shadow: 0 18px 45px -25px rgba(25, 42, 89, 0.45);
+    backdrop-filter: blur(6px);
+}
+
+.app-table thead {
+    background-color: #f1f3ff;
+}
+
+.app-table thead th {
+    border-bottom: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #5c638a;
+}
+
+.app-table tbody tr {
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.app-table tbody tr:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px -28px rgba(85, 102, 170, 0.55);
+}
+
+.filter-pill {
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+    background-color: rgba(86, 109, 255, 0.1);
+    color: #566dff;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.filter-pill .bi {
+    font-size: 0.9rem;
+}
+
+.app-pagination .page-link {
+    border-radius: 0.75rem !important;
+}
+
+.toast {
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 40px -22px rgba(25, 42, 89, 0.55);
+}
+
+.sidebar-collapsed .app-sidebar {
+    transform: translateX(-100%);
+}
+
+.sidebar-collapsed .app-main {
+    width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    :root {
+        --app-sidebar-width: 220px;
+    }
+
+    .app-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        transform: translateX(-100%);
+    }
+
+    .app-sidebar.open {
+        transform: translateX(0);
+        box-shadow: 0 18px 30px -12px rgba(16, 21, 53, 0.65);
+    }
+
+    .app-main {
+        width: 100%;
+    }
+
+    .app-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .app-content {
+        padding: 1rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

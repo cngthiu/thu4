@@ -2,6 +2,8 @@ package com.example.library.controller.api;
 
 import com.example.library.dto.BookDto;
 import com.example.library.dto.BookListItem;
+import com.example.library.dto.PagedResult;
+import com.example.library.jooq.enums.BookStatus;
 import com.example.library.service.BookService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -28,10 +30,15 @@ public class BookApiController {
     }
 
     @GetMapping
-    public List<BookListItem> list(@RequestParam(required = false) String q,
-                                   @RequestParam(defaultValue = "0") int page,
-                                   @RequestParam(defaultValue = "10") int size,
-                                   @RequestParam(required = false, name = "sort") String sort) {
+    public PagedResult<BookListItem> list(@RequestParam(required = false) String q,
+                                          @RequestParam(required = false) Long authorId,
+                                          @RequestParam(required = false) Long categoryId,
+                                          @RequestParam(required = false) String status,
+                                          @RequestParam(required = false) String minPrice,
+                                          @RequestParam(required = false) String maxPrice,
+                                          @RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size,
+                                          @RequestParam(required = false, name = "sort") String sort) {
         SortField<?> sortField = null;
         if (sort != null) {
             boolean desc = sort.endsWith(",desc");
@@ -42,7 +49,25 @@ public class BookApiController {
                 sortField = desc ? BOOK.TITLE.desc() : BOOK.TITLE.asc();
             }
         }
-        return bookService.search(q, page, size, sortField);
+        BookStatus bookStatus = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                bookStatus = BookStatus.valueOf(status.trim().toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                bookStatus = null;
+            }
+        }
+        return bookService.search(
+                q,
+                authorId,
+                categoryId,
+                bookStatus,
+                parseDecimal(minPrice),
+                parseDecimal(maxPrice),
+                page,
+                size,
+                sortField
+        );
     }
 
     @PostMapping
@@ -58,5 +83,16 @@ public class BookApiController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         bookService.delete(id);
+    }
+
+    private java.math.BigDecimal parseDecimal(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return new java.math.BigDecimal(value);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 }

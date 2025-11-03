@@ -25,6 +25,7 @@
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/LoanFilter.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/LoanListItem.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/MemberDto.java
+/media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/dto/PagedResult.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/exception/ApiError.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/exception/GlobalExceptionHandler.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/scheduler/EmailNotificationScheduler.java

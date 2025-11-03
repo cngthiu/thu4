@@ -28,6 +28,8 @@ public class DashboardController {
 
     @GetMapping({"/", "/dashboard"})
     public String dashboard(Model model) {
+        model.addAttribute("pageTitle", "Dashboard");
+        model.addAttribute("pageId", "dashboard");
         model.addAttribute("totalBooks", bookService.countAll());
         model.addAttribute("availableBooks", bookService.countAvailable());
         model.addAttribute("totalMembers", memberService.countAll());
