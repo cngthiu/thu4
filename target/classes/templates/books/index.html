@@ -113,7 +113,7 @@
               <option value="">All authors</option>
               <option th:each="author : ${authors}"
                       th:value="${author.authorId}"
-                      th:selected="${author.authorId} == ${authorId}"
+                      th:selected="${author.authorId == authorId}"
                       th:text="${author.name}"></option>
             </select>
           </div>
@@ -127,7 +127,7 @@
               <option value="">All categories</option>
               <option th:each="category : ${categories}"
                       th:value="${category.categoryId}"
-                      th:selected="${category.categoryId} == ${categoryId}"
+                      th:selected="${category.categoryId == categoryId}"
                       th:text="${category.name}"></option>
             </select>
           </div>
@@ -220,7 +220,7 @@
         <tbody>
         <tr th:each="book, stat : ${books}"
             data-animate-row
-            th:classappend="${stat.index % 2 == 0} ? ' table-light' : ''">
+            th:classappend="${stat.index % 2 == 0 ? ' table-light' : ''}">
           <td class="fw-semibold text-muted" th:text="${book.bookId}">1</td>
           <td>
             <div class="fw-semibold" th:text="${book.title}">Book title</div>
@@ -235,7 +235,8 @@
                   th:text="${book.stock}">0</span>
           </td>
           <td>
-            <span th:class="${book.status != null} ? 'badge badge-status text-uppercase fw-semibold badge-status-' + #strings.toLowerCase(book.status.name()) : 'badge badge-status text-uppercase fw-semibold badge-status-unknown'"
+            <span class="badge badge-status text-uppercase fw-semibold"
+                  th:classappend="${book.status != null ? ' badge-status-' + #strings.toLowerCase(book.status.name()) : ' badge-status-unknown'}"
                   th:text="${book.status != null ? book.status.name() : 'UNKNOWN'}">AVAILABLE</span>
           </td>
           <td class="text-end">

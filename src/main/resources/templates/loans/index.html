@@ -88,7 +88,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="loan,iter : ${loans}" th:classappend="${iter.index % 2 == 0} ? ' table-light' : ''">
+        <tr th:each="loan,iter : ${loans}" th:classappend="${iter.index % 2 == 0 ? ' table-light' : ''}">
           <td>
             <div class="fw-semibold" th:text="${loan.loanId}">1</div>
             <small class="text-muted" th:text="${loan.status != null ? loan.status.name() : ''}"></small>
@@ -105,7 +105,8 @@
           <td th:text="${loan.dueDate != null ? #temporals.format(loan.dueDate, 'dd MMM yyyy') : '—'}">-</td>
           <td th:text="${loan.returnDate != null ? #temporals.format(loan.returnDate, 'dd MMM yyyy') : '—'}">-</td>
           <td>
-            <span th:class="${loan.status != null} ? 'badge badge-status text-uppercase fw-semibold badge-status-' + #strings.toLowerCase(loan.status.name()) : 'badge badge-status text-uppercase fw-semibold badge-status-unknown'"
+            <span class="badge badge-status text-uppercase fw-semibold"
+                  th:classappend="${loan.status != null ? ' badge-status-' + #strings.toLowerCase(loan.status.name()) : ' badge-status-unknown'}"
                   th:text="${loan.status != null ? loan.status.name() : 'UNKNOWN'}">STATUS</span>
           </td>
           <td class="text-end fw-semibold"
