@@ -47,6 +47,7 @@ com/example/library/jooq/tables/Notification.class
 com/example/library/jooq/tables/records/AuthorRecord.class
 com/example/library/dto/CategoryDto.class
 com/example/library/jooq/enums/BookStatus.class
+com/example/library/dto/PagedResult.class
 com/example/library/dto/BookDto.class
 com/example/library/jooq/tables/pojos/Member.class
 com/example/library/jooq/tables/Loan.class
