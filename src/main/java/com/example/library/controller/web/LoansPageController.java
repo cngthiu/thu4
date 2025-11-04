@@ -4,6 +4,7 @@ package com.example.library.controller.web;
 import com.example.library.dto.BookListItem;
 import com.example.library.dto.LoanBorrowForm;
 import com.example.library.dto.LoanListItem;
+import com.example.library.dto.PagedResult;
 import com.example.library.jooq.enums.LoanStatus;
 import com.example.library.jooq.tables.records.MemberRecord;
 import com.example.library.service.BookService;
@@ -44,13 +45,15 @@ public class LoansPageController {
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "10") int size,
                        Model model) {
-        List<LoanListItem> loans = loanService.list(q, status, page, size);
+        PagedResult<LoanListItem> loansPage = loanService.list(q, status, page, size);
         model.addAttribute("pageTitle", "Loans");
         model.addAttribute("pageId", "loans");
         model.addAttribute("q", q);
-        model.addAttribute("loans", loans);
+        model.addAttribute("loansPage", loansPage);
+        model.addAttribute("loans", loansPage.items());
         model.addAttribute("status", status);
-        model.addAttribute("size", size);
+        model.addAttribute("size", loansPage.size());
+        model.addAttribute("page", loansPage.page());
         model.addAttribute("statuses", LoanStatus.values());
         return "loans/index";
     }

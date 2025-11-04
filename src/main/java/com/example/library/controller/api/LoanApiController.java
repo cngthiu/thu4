@@ -2,6 +2,7 @@ package com.example.library.controller.api;
 
 import com.example.library.dto.LoanBorrowRequest;
 import com.example.library.dto.LoanListItem;
+import com.example.library.dto.PagedResult;
 import com.example.library.service.LoanService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
@@ -42,10 +43,10 @@ public class LoanApiController {
     }
 
     @GetMapping
-    public List<LoanListItem> list(@RequestParam(required = false) String q,
-                                   @RequestParam(required = false) String status,
-                                   @RequestParam(defaultValue = "0") int page,
-                                   @RequestParam(defaultValue = "10") int size) {
+    public PagedResult<LoanListItem> list(@RequestParam(required = false) String q,
+                                          @RequestParam(required = false) String status,
+                                          @RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size) {
         return loanService.list(q, status, page, size);
     }
 }

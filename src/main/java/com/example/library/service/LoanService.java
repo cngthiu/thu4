@@ -4,6 +4,7 @@ package com.example.library.service;
 import com.example.library.dto.BorrowReturnStat;
 import com.example.library.dto.ChartDataPoint;
 import com.example.library.dto.LoanListItem;
+import com.example.library.dto.PagedResult;
 import com.example.library.jooq.enums.LoanStatus;
 import com.example.library.jooq.tables.records.LoanRecord;
 import com.example.library.service.NotificationService;
@@ -163,7 +164,7 @@ public class LoanService {
         }
     }
 
-    public List<LoanListItem> list(String q, String status, int page, int size) {
+    public PagedResult<LoanListItem> list(String q, String status, int page, int size) {
         Condition condition = DSL.trueCondition();
         LoanStatus desiredStatus = parseStatus(status);
         if (desiredStatus != null) {
@@ -177,7 +178,10 @@ public class LoanService {
                             .or(MEMBER.EMAIL.likeIgnoreCase(keyword))
             );
         }
-        return dsl.select(
+        int pageIndex = Math.max(page, 0);
+        int pageSize = Math.max(size, 1);
+
+        List<LoanListItem> items = dsl.select(
                         LOAN.LOAN_ID,
                         LOAN.MEMBER_ID,
                         MEMBER.FULL_NAME,
@@ -194,9 +198,19 @@ public class LoanService {
                 .join(MEMBER).on(LOAN.MEMBER_ID.eq(MEMBER.MEMBER_ID))
                 .where(condition)
                 .orderBy(LOAN.DUE_DATE.asc())
-                .limit(size)
-                .offset(page * size)
+                .limit(pageSize)
+                .offset(pageIndex * pageSize)
                 .fetch(this::mapToLoanListItem);
+
+        Long total = dsl.select(DSL.count())
+                .from(LOAN)
+                .join(BOOK).on(LOAN.BOOK_ID.eq(BOOK.BOOK_ID))
+                .join(MEMBER).on(LOAN.MEMBER_ID.eq(MEMBER.MEMBER_ID))
+                .where(condition)
+                .fetchOne(0, Long.class);
+
+        long totalCount = total == null ? 0L : total;
+        return new PagedResult<>(items, totalCount, pageIndex, pageSize);
     }
 
     private void rejectIfMemberHasOutstandingLoans(Long memberId) {
@@ -235,7 +249,7 @@ public class LoanService {
         try {
             return LoanStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Invalid loan status: " + status, ex);
+            return null;
         }
     }
 

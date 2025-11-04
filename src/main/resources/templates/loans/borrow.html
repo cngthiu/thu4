@@ -1,4 +1,5 @@
 <!-- src/main/resources/templates/loans/borrow.html -->
+<!-- src/main/resources/templates/loans/borrow.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="fragments/layout :: layout (~{::title}, ~{::section})">
@@ -6,83 +7,134 @@
   <title>Borrow Books</title>
 </head>
 <body>
-<section>
-  <h3>Borrow Books</h3>
-
-  <!-- Đặt khối lỗi GLOBAL bên trong th:object -->
-  <form method="post" th:action="@{/loans/borrow}" th:object="${form}">
-    <!-- (Nếu dùng Spring Security) CSRF -->
-    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
-    <!-- GLOBAL (form-level) errors -->
-    <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
-      <ul class="mb-0">
-        <li th:each="err : ${#fields.globalErrors()}"
-            th:text="${err.defaultMessage != null ? err.defaultMessage : err}"></li>
-      </ul>
-    </div>
-
-    <div class="row g-3">
-      <div class="col-md-4">
-        <label class="form-label">Member</label>
-        <select class="form-select" th:field="*{memberId}" required
-                th:disabled="${#lists.isEmpty(members)}">
-          <!-- Với th:field không cần selected; để value rỗng làm placeholder -->
-          <option value="" disabled
-                  th:text="${#lists.isEmpty(members) ? 'No members available' : 'Select member'}"></option>
-          <option th:each="member : ${members}"
-                  th:value="${member.memberId}"
-                  th:text="${member.fullName}">
-          </option>
-        </select>
-        <div class="text-danger" th:if="${#fields.hasErrors('memberId')}" th:errors="*{memberId}"></div>
+<section class="container-fluid px-0">
+  <div class="card app-card border-0 p-3 p-lg-4">
+    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-3 mb-3">
+      <div>
+        <h2 class="fw-semibold mb-1">Borrow Books</h2>
+        <p class="text-muted mb-0 small">Tạo phiếu mượn mới cho thành viên và chọn nhiều sách một lần.</p>
       </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Borrow Date</label>
-        <input class="form-control" type="date" th:field="*{borrowDate}" required>
-        <div class="text-danger" th:if="${#fields.hasErrors('borrowDate')}" th:errors="*{borrowDate}"></div>
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Due Date</label>
-        <input class="form-control" type="date" th:field="*{dueDate}" required>
-        <div class="text-danger" th:if="${#fields.hasErrors('dueDate')}" th:errors="*{dueDate}"></div>
+      <div>
+        <a class="btn btn-secondary" th:href="@{/loans}">
+          <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
       </div>
     </div>
 
-    <div class="mt-4">
-      <label class="form-label">Select Books</label>
-      <div th:if="${#lists.isEmpty(books)}" class="alert alert-warning">
-        No available books to borrow right now.
+    <!-- Bọc form với th:object để Thymeleaf map BindingResult -->
+    <form method="post"
+          th:action="@{/loans/borrow}"
+          th:object="${form}"
+          data-loading>
+
+      <!-- CSRF (nếu bật Spring Security) -->
+      <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+      <!-- GLOBAL (form-level) errors -->
+      <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}" role="alert" aria-live="assertive">
+        <ul class="mb-0">
+          <li th:each="err : ${#fields.globalErrors()}"
+              th:text="${err.defaultMessage}">Something went wrong</li>
+        </ul>
       </div>
 
-      <div class="row" th:if="${!#lists.isEmpty(books)}">
-        <div class="col-md-6" th:each="book : ${books}">
-          <div class="form-check border rounded p-2 mb-2">
-            <input class="form-check-input" type="checkbox"
-                   th:value="${book.bookId}" th:field="*{bookIds}">
-            <label class="form-check-label">
-              <strong th:text="${book.title}"></strong>
-              <div class="text-muted small">
-                <span th:text="${book.authorName != null ? book.authorName : 'Unknown author'}"></span>
-                &nbsp;|&nbsp;
-                <span>Stock: <span th:text="${book.stock}"></span></span>
-              </div>
-            </label>
-          </div>
+      <div class="row g-3">
+        <!-- Member -->
+        <div class="col-md-4">
+          <label class="form-label" for="memberId">Member</label>
+          <select class="form-select"
+                  id="memberId"
+                  th:field="*{memberId}"
+                  th:classappend="${#fields.hasErrors('memberId') ? ' is-invalid' : ''}"
+                  th:disabled="${#lists.isEmpty(members)}"
+                  aria-describedby="memberIdHelp memberIdError"
+                  required>
+            <!-- Với th:field, option trống sẽ làm placeholder -->
+            <option value="" disabled
+                    th:text="${#lists.isEmpty(members) ? 'No members available' : 'Select member'}"></option>
+            <option th:each="member : ${members}"
+                    th:value="${member.memberId}"
+                    th:text="${member.fullName}">
+            </option>
+          </select>
+          <div id="memberIdHelp" class="form-text">Chọn thành viên mượn sách.</div>
+          <div id="memberIdError" class="invalid-feedback" th:if="${#fields.hasErrors('memberId')}" th:errors="*{memberId}"></div>
+        </div>
+
+        <!-- Borrow Date -->
+        <div class="col-md-4">
+          <label class="form-label" for="borrowDate">Borrow Date</label>
+          <input class="form-control"
+                 id="borrowDate"
+                 type="date"
+                 th:field="*{borrowDate}"
+                 th:classappend="${#fields.hasErrors('borrowDate') ? ' is-invalid' : ''}"
+                 aria-describedby="borrowDateError"
+                 required>
+          <div id="borrowDateError" class="invalid-feedback" th:if="${#fields.hasErrors('borrowDate')}" th:errors="*{borrowDate}"></div>
+        </div>
+
+        <!-- Due Date -->
+        <div class="col-md-4">
+          <label class="form-label" for="dueDate">Due Date</label>
+          <input class="form-control"
+                 id="dueDate"
+                 type="date"
+                 th:field="*{dueDate}"
+                 th:classappend="${#fields.hasErrors('dueDate') ? ' is-invalid' : ''}"
+                 aria-describedby="dueDateError"
+                 required>
+          <div id="dueDateError" class="invalid-feedback" th:if="${#fields.hasErrors('dueDate')}" th:errors="*{dueDate}"></div>
         </div>
       </div>
 
-      <div class="text-danger" th:if="${#fields.hasErrors('bookIds')}" th:errors="*{bookIds}"></div>
-    </div>
+      <!-- Books -->
+      <div class="mt-4">
+        <label class="form-label d-flex align-items-center gap-2">
+          <i class="bi bi-journal-bookmark"></i>
+          <span>Select Books</span>
+        </label>
 
-    <div class="mt-3">
-      <a class="btn btn-secondary" th:href="@{/loans}">Back</a>
-      <button class="btn btn-primary"
-              th:disabled="${#lists.isEmpty(books) or #lists.isEmpty(members)}">Borrow</button>
-    </div>
-  </form>
+        <div th:if="${#lists.isEmpty(books)}" class="alert alert-warning" role="status" aria-live="polite">
+          No available books to borrow right now.
+        </div>
+
+        <div class="row" th:if="${!#lists.isEmpty(books)}">
+          <div class="col-md-6" th:each="book : ${books}">
+            <div class="form-check border rounded-3 p-2 mb-2">
+              <!-- id duy nhất cho mỗi checkbox -->
+              <input class="form-check-input" type="checkbox"
+                     th:id="|bookIds__${book.bookId}|"
+                     th:value="${book.bookId}"
+                     th:field="*{bookIds}">
+              <label class="form-check-label" th:for="|bookIds__${book.bookId}|">
+                <strong th:text="${book.title}">Book title</strong>
+                <div class="text-muted small">
+                  <span th:text="${book.authorName != null ? book.authorName : 'Unknown author'}">Author</span>
+                  &nbsp;|&nbsp;
+                  <span>Stock: <span th:text="${book.stock}">0</span></span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-danger small mt-1"
+             th:if="${#fields.hasErrors('bookIds')}"
+             th:errors="*{bookIds}"></div>
+      </div>
+
+      <div class="mt-4 d-flex gap-2">
+        <a class="btn btn-outline-secondary" th:href="@{/loans}">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </a>
+        <button class="btn btn-primary js-submit" type="submit"
+                th:disabled="${#lists.isEmpty(books) or #lists.isEmpty(members)}">
+          <i class="bi bi-check2-circle me-1"></i> Borrow
+        </button>
+      </div>
+    </form>
+  </div>
 </section>
 </body>
 </html>
