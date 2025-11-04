@@ -84,6 +84,24 @@ body.app-body {
     transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
+.app-nav-link .nav-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.85rem;
+    background: rgba(255, 255, 255, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.app-nav-link .nav-label {
+    flex-grow: 1;
+}
+
 .app-nav-link:hover {
     background-color: rgba(255, 255, 255, 0.08);
     transform: translateX(2px);
@@ -93,6 +111,11 @@ body.app-body {
     background: linear-gradient(90deg, #566dff, #8f9bff);
     color: #fff;
     box-shadow: 0 12px 20px -12px rgba(86, 109, 255, 0.8);
+}
+
+.app-nav-link.active .nav-icon {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
 }
 
 .app-sidebar-footer {
@@ -163,12 +186,65 @@ body.app-body {
 }
 
 .app-table tbody tr {
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    transition: box-shadow 0.12s ease, background-color 0.12s ease;
 }
 
 .app-table tbody tr:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 12px 24px -28px rgba(85, 102, 170, 0.55);
+    background-color: rgba(86, 109, 255, 0.04);
+    box-shadow: inset 0 0 0 1px rgba(86, 109, 255, 0.12);
+}
+
+.badge-status {
+    border-radius: 999px;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.75rem;
+}
+
+.badge-status-available {
+    background: rgba(11, 132, 134, 0.12);
+    color: #0b8486;
+}
+
+.badge-status-unavailable,
+.badge-status-checkedout {
+    background: rgba(230, 126, 34, 0.16);
+    color: #d35400;
+}
+
+.badge-status-reserved {
+    background: rgba(86, 109, 255, 0.16);
+    color: #4350d5;
+}
+
+.badge-status-lost {
+    background: rgba(220, 53, 69, 0.16);
+    color: #c71f37;
+}
+
+.badge-status-retired {
+    background: rgba(108, 117, 125, 0.16);
+    color: #495057;
+}
+
+.badge-status-unknown {
+    background: rgba(73, 80, 87, 0.12);
+    color: #495057;
+}
+
+.badge-status-borrowed {
+    background: rgba(13, 110, 253, 0.15);
+    color: #0d6efd;
+}
+
+.badge-status-overdue {
+    background: rgba(255, 193, 7, 0.2);
+    color: #c48b00;
+}
+
+.badge-status-returned {
+    background: rgba(25, 135, 84, 0.16);
+    color: #198754;
 }
 
 .filter-pill {
@@ -193,6 +269,67 @@ body.app-body {
 .toast {
     border-radius: 0.75rem;
     box-shadow: 0 20px 40px -22px rgba(25, 42, 89, 0.55);
+}
+
+.metric-card {
+    border: none;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(241, 244, 255, 0.92));
+    box-shadow: 0 18px 45px -30px rgba(25, 42, 89, 0.55);
+    overflow: hidden;
+    position: relative;
+}
+
+.metric-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(86, 109, 255, 0.08), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.metric-card:hover::after {
+    opacity: 1;
+}
+
+.metric-card .metric-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.metric-card .metric-value {
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.metric-card .metric-subtitle {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.app-table tbody tr[data-animate-row] {
+    animation: rowFade 0.35s ease forwards;
+    animation-delay: var(--stagger, 0ms);
+}
+
+@keyframes rowFade {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .sidebar-collapsed .app-sidebar {

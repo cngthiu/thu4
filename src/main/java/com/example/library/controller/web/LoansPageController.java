@@ -4,6 +4,7 @@ package com.example.library.controller.web;
 import com.example.library.dto.BookListItem;
 import com.example.library.dto.LoanBorrowForm;
 import com.example.library.dto.LoanListItem;
+import com.example.library.jooq.enums.LoanStatus;
 import com.example.library.jooq.tables.records.MemberRecord;
 import com.example.library.service.BookService;
 import com.example.library.service.LoanService;
@@ -38,13 +39,19 @@ public class LoansPageController {
     }
 
     @GetMapping
-    public String list(@RequestParam(required = false) String status,
+    public String list(@RequestParam(required = false) String q,
+                       @RequestParam(required = false) String status,
                        @RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "10") int size,
                        Model model) {
-        List<LoanListItem> loans = loanService.list(null, status, page, size);
+        List<LoanListItem> loans = loanService.list(q, status, page, size);
+        model.addAttribute("pageTitle", "Loans");
+        model.addAttribute("pageId", "loans");
+        model.addAttribute("q", q);
         model.addAttribute("loans", loans);
         model.addAttribute("status", status);
+        model.addAttribute("size", size);
+        model.addAttribute("statuses", LoanStatus.values());
         return "loans/index";
     }
 
@@ -54,6 +61,8 @@ public class LoansPageController {
         form.setBorrowDate(LocalDate.now());
         form.setDueDate(LocalDate.now().plusDays(14));
         model.addAttribute("form", form);
+        model.addAttribute("pageTitle", "Borrow books");
+        model.addAttribute("pageId", "loans");
         populateBorrowReferences(model);
         return "loans/borrow";
     }
@@ -63,6 +72,8 @@ public class LoansPageController {
                          BindingResult br,
                          Model model) {
         if (br.hasErrors()) {
+            model.addAttribute("pageTitle", "Borrow books");
+            model.addAttribute("pageId", "loans");
             populateBorrowReferences(model);
             return "loans/borrow";
         }
@@ -70,6 +81,8 @@ public class LoansPageController {
             loanService.borrow(form.getMemberId(), form.getBookIds(), form.getBorrowDate(), form.getDueDate());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             br.reject("borrow.error", ex.getMessage());
+            model.addAttribute("pageTitle", "Borrow books");
+            model.addAttribute("pageId", "loans");
             populateBorrowReferences(model);
             return "loans/borrow";
         }

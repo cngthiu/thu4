@@ -6,60 +6,134 @@
   <title>Loans</title>
 </head>
 <body>
-<section>
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Loans</h3>
-    <form class="d-flex" method="get">
-      <select class="form-select me-2" name="status">
-        <option th:selected="${status == null}">All</option>
-        <option value="BORROWED" th:selected="${status == 'BORROWED'}">BORROWED</option>
-        <option value="OVERDUE" th:selected="${status == 'OVERDUE'}">OVERDUE</option>
-        <option value="RETURNED" th:selected="${status == 'RETURNED'}">RETURNED</option>
-      </select>
-      <button class="btn btn-primary">Filter</button>
-      <a class="btn btn-success ms-2" th:href="@{/loans/borrow}">+ Borrow</a>
+<section class="container-fluid px-0">
+  <div class="card app-card border-0 p-3 p-lg-4 mb-4">
+    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-3">
+      <div>
+        <h2 class="fw-semibold mb-1">Loan management</h2>
+        <p class="text-muted mb-0 small">Theo dõi tình trạng mượn – trả sách và xử lý quá hạn nhanh chóng.</p>
+      </div>
+      <div class="d-flex flex-column flex-sm-row gap-2">
+        <a class="btn btn-outline-primary" th:href="@{/loans/borrow}">
+          <i class="bi bi-journal-plus me-1"></i> Create loan
+        </a>
+      </div>
+    </div>
+
+    <form class="mt-4" method="get" data-loading id="loanFilters">
+      <input type="hidden" name="page" id="loanPageInput" value="0"/>
+      <div class="row g-3">
+        <div class="col-lg-5">
+          <div class="input-group shadow-sm rounded-4 overflow-hidden">
+            <span class="input-group-text border-0 bg-body-tertiary">
+              <i class="bi bi-search text-secondary"></i>
+            </span>
+            <input class="form-control border-0"
+                   type="search"
+                   name="q"
+                   placeholder="Search member, email, book title…"
+                   th:value="${q}"
+                   data-debounce="500"
+                   data-target-form="loanFilters"
+                   data-reset-page="#loanPageInput">
+          </div>
+        </div>
+        <div class="col-md-3 col-lg-2">
+          <select class="form-select shadow-sm"
+                  name="status"
+                  data-auto-submit
+                  data-target-form="loanFilters"
+                  data-reset-page="#loanPageInput">
+            <option value="" th:selected="${status == null}">All status</option>
+            <option th:each="s : ${statuses}"
+                    th:value="${s}"
+                    th:selected="${status != null and status.equalsIgnoreCase(s.name())}"
+                    th:text="${s.name()}"></option>
+          </select>
+        </div>
+        <div class="col-md-3 col-lg-2">
+          <select class="form-select shadow-sm"
+                  name="size"
+                  data-auto-submit
+                  data-target-form="loanFilters"
+                  data-reset-page="#loanPageInput">
+            <option value="10" th:selected="${size == 10}">10 / page</option>
+            <option value="25" th:selected="${size == 25}">25 / page</option>
+            <option value="50" th:selected="${size == 50}">50 / page</option>
+          </select>
+        </div>
+        <div class="col-lg-2 text-lg-end ms-lg-auto">
+          <button class="btn btn-primary w-100 w-lg-auto" type="submit">
+            <i class="bi bi-arrow-repeat me-1"></i>Apply
+          </button>
+        </div>
+      </div>
     </form>
   </div>
 
-  <table class="table table-striped table-hover">
-    <thead>
-    <tr>
-      <th>ID</th>
-      <th>Book</th>
-      <th>Member</th>
-      <th>Borrow Date</th>
-      <th>Due Date</th>
-      <th>Return Date</th>
-      <th>Status</th>
-      <th>Fine</th>
-      <th></th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="loan : ${loans}">
-      <td th:text="${loan.loanId}"></td>
-      <td>
-        <div th:text="${loan.bookTitle}"></div>
-        <small class="text-muted">ID: <span th:text="${loan.bookId}"></span></small>
-      </td>
-      <td>
-        <div th:text="${loan.memberName}"></div>
-        <small class="text-muted">ID: <span th:text="${loan.memberId}"></span></small>
-      </td>
-      <td th:text="${#temporals.format(loan.borrowDate, 'yyyy-MM-dd')}" ></td>
-      <td th:text="${#temporals.format(loan.dueDate, 'yyyy-MM-dd')}"></td>
-      <td th:text="${loan.returnDate != null ? #temporals.format(loan.returnDate, 'yyyy-MM-dd') : ''}"></td>
-      <td th:text="${loan.status}"></td>
-      <td th:text="${loan.fineAmount != null ? loan.fineAmount : 0}"></td>
-      <td>
-        <form th:if="${loan.status != null and loan.status.name() != 'RETURNED'}"
-              th:action="@{|/loans/${loan.loanId}/return|}" method="post">
-          <button class="btn btn-sm btn-outline-primary">Mark Returned</button>
-        </form>
-      </td>
-    </tr>
-    </tbody>
-  </table>
+  <div class="card app-card border-0 p-0">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0 app-table">
+        <thead>
+        <tr class="text-uppercase small text-muted">
+          <th scope="col">Loan</th>
+          <th scope="col">Book</th>
+          <th scope="col">Member</th>
+          <th scope="col">Borrow</th>
+          <th scope="col">Due</th>
+          <th scope="col">Return</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="text-end">Fine</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="loan,iter : ${loans}" th:classappend="${iter.index % 2 == 0} ? ' table-light' : ''">
+          <td>
+            <div class="fw-semibold" th:text="${loan.loanId}">1</div>
+            <small class="text-muted" th:text="${loan.status != null ? loan.status.name() : ''}"></small>
+          </td>
+          <td>
+            <div class="fw-semibold" th:text="${loan.bookTitle}">Book title</div>
+            <small class="text-muted">#<span th:text="${loan.bookId}">0</span></small>
+          </td>
+          <td>
+            <div class="fw-semibold" th:text="${loan.memberName}">Member</div>
+            <small class="text-muted">#<span th:text="${loan.memberId}">0</span></small>
+          </td>
+          <td th:text="${loan.borrowDate != null ? #temporals.format(loan.borrowDate, 'dd MMM yyyy') : '—'}">-</td>
+          <td th:text="${loan.dueDate != null ? #temporals.format(loan.dueDate, 'dd MMM yyyy') : '—'}">-</td>
+          <td th:text="${loan.returnDate != null ? #temporals.format(loan.returnDate, 'dd MMM yyyy') : '—'}">-</td>
+          <td>
+            <span th:class="${loan.status != null} ? 'badge badge-status text-uppercase fw-semibold badge-status-' + #strings.toLowerCase(loan.status.name()) : 'badge badge-status text-uppercase fw-semibold badge-status-unknown'"
+                  th:text="${loan.status != null ? loan.status.name() : 'UNKNOWN'}">STATUS</span>
+          </td>
+          <td class="text-end fw-semibold"
+              th:text="${loan.fineAmount != null ? #numbers.formatDecimal(loan.fineAmount, 0, 'COMMA', 0, 'POINT') : '0'}">0</td>
+          <td class="text-end">
+            <div class="d-flex justify-content-end gap-2">
+              <form th:if="${loan.status != null and loan.status.name() != 'RETURNED'}"
+                    th:action="@{|/loans/${loan.loanId}/return|}"
+                    method="post"
+                    data-confirm="Mark this loan as returned?"
+                    data-loading>
+                <button class="btn btn-outline-success btn-sm" type="submit">
+                  <i class="bi bi-check2-circle me-1"></i> Return
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(loans)}">
+          <td colspan="9" class="text-center py-5 text-muted">
+            <i class="bi bi-inboxes mb-2" style="font-size: 2rem;"></i>
+            <p class="mb-0">No loans found</p>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </section>
 </body>
 </html>

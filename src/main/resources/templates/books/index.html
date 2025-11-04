@@ -80,12 +80,22 @@
                th:if="${q != null or authorId != null or categoryId != null or status != null or minPrice != null or maxPrice != null}">
               <i class="bi bi-x-circle me-1"></i>Clear filters
             </a>
-            <button class="btn btn-outline-secondary" type="button"
+            <button class="btn btn-outline-secondary d-none d-lg-inline-flex" type="button"
                     data-bs-toggle="collapse"
                     data-bs-target="#advancedFilters"
                     aria-expanded="false"
                     aria-controls="advancedFilters">
               <i class="bi bi-sliders me-1"></i>Filters
+            </button>
+            <button class="btn btn-outline-secondary d-inline-flex d-lg-none" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#advancedFilters"
+                    aria-expanded="false"
+                    aria-controls="advancedFilters">
+              <i class="bi bi-sliders"></i>
+            </button>
+            <button class="btn btn-primary" type="submit">
+              <i class="bi bi-arrow-repeat me-1"></i>Apply
             </button>
           </div>
         </div>
@@ -162,6 +172,34 @@
         </div>
       </div>
     </form>
+
+    <div class="d-flex flex-wrap gap-2 mt-3"
+         th:if="${booksPage.total() > 0 and (q != null or authorId != null or categoryId != null or status != null or minPrice != null or maxPrice != null)}">
+      <span class="filter-pill" th:if="${q != null}">
+        <i class="bi bi-search"></i>
+        <span th:text="${q}">Search</span>
+      </span>
+      <span class="filter-pill" th:if="${authorId != null}">
+        <i class="bi bi-person"></i>
+        <span>Author ID <span th:text="${authorId}"></span></span>
+      </span>
+      <span class="filter-pill" th:if="${categoryId != null}">
+        <i class="bi bi-tag"></i>
+        <span>Category ID <span th:text="${categoryId}"></span></span>
+      </span>
+      <span class="filter-pill" th:if="${status != null}">
+        <i class="bi bi-flag"></i>
+        <span th:text="${status}">Status</span>
+      </span>
+      <span class="filter-pill" th:if="${minPrice != null}">
+        <i class="bi bi-currency-dollar"></i>
+        <span>Min <span th:text="${minPrice}">0</span></span>
+      </span>
+      <span class="filter-pill" th:if="${maxPrice != null}">
+        <i class="bi bi-currency-dollar"></i>
+        <span>Max <span th:text="${maxPrice}">0</span></span>
+      </span>
+    </div>
   </div>
 
   <div class="card app-card border-0 p-0">
@@ -184,23 +222,25 @@
             data-animate-row
             th:classappend="${stat.index % 2 == 0} ? ' table-light' : ''">
           <td class="fw-semibold text-muted" th:text="${book.bookId}">1</td>
-          <td class="fw-semibold" th:text="${book.title}">Book title</td>
+          <td>
+            <div class="fw-semibold" th:text="${book.title}">Book title</div>
+            <small class="text-muted d-none d-lg-inline">#<span th:text="${book.bookId}">0</span></small>
+          </td>
           <td th:text="${book.authorName != null ? book.authorName : 'Unknown'}">Author</td>
           <td th:text="${book.categoryName != null ? book.categoryName : 'Unknown'}">Category</td>
-          <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(book.price, 0, 'COMMA', 2, 'POINT')}">0</td>
+          <td class="text-end fw-semibold" th:text="${book.price != null ? #numbers.formatDecimal(book.price, 0, 'COMMA', 2, 'POINT') : '—'}">0</td>
           <td class="text-end">
             <span class="badge rounded-pill"
                   th:classappend="${book.stock != null and book.stock > 5} ? ' bg-success-subtle text-success' : ' bg-warning-subtle text-warning'"
                   th:text="${book.stock}">0</span>
           </td>
           <td>
-            <span class="badge rounded-pill text-uppercase fw-semibold"
-                  th:classappend="${book.status != null and book.status.name().equalsIgnoreCase('AVAILABLE')} ? ' bg-primary-subtle text-primary' : ' bg-danger-subtle text-danger'"
+            <span th:class="${book.status != null} ? 'badge badge-status text-uppercase fw-semibold badge-status-' + #strings.toLowerCase(book.status.name()) : 'badge badge-status text-uppercase fw-semibold badge-status-unknown'"
                   th:text="${book.status != null ? book.status.name() : 'UNKNOWN'}">AVAILABLE</span>
           </td>
           <td class="text-end">
-            <div class="btn-group btn-group-sm" role="group">
-              <a class="btn btn-outline-primary"
+            <div class="d-flex justify-content-end gap-2">
+              <a class="btn btn-outline-primary btn-sm"
                  th:href="@{|/books/${book.bookId}/edit|}">
                 <i class="bi bi-pencil-square"></i>
               </a>
@@ -209,7 +249,7 @@
                     data-confirm="Delete this book?"
                     data-loading
                     class="d-inline">
-                <button class="btn btn-outline-danger" type="submit">
+                <button class="btn btn-outline-danger btn-sm" type="submit">
                   <i class="bi bi-trash"></i>
                 </button>
               </form>
