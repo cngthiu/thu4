@@ -339,7 +339,7 @@
                 </td>
                 <td
                   class="text-end fw-semibold"
-                  th:text="${book.price != null ? #numbers.formatDecimal(book.price, 0, 'COMMA', 2, 'POINT') : '—'}"
+                  th:text="${book.price != null ? #numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT') + ' đ' : '—'}"
                 >
                   0
                 </td>
