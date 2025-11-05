@@ -1,6 +1,7 @@
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/LibraryApplication.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/config/JooqConfig.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/config/MailConfig.java
+/media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/config/WebConfig.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/api/AuthorApiController.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/api/BookApiController.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/controller/api/CategoryApiController.java
@@ -33,6 +34,7 @@
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/service/AuthorService.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/service/BookService.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/service/CategoryService.java
+/media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/service/CoverStorageService.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/service/LoanService.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/service/MemberService.java
 /media/congthieu/ubuntu_data/library-borrow-return/src/main/java/com/example/library/service/NotificationService.java

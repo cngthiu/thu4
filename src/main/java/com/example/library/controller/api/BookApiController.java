@@ -5,6 +5,7 @@ import com.example.library.dto.BookListItem;
 import com.example.library.dto.PagedResult;
 import com.example.library.jooq.enums.BookStatus;
 import com.example.library.service.BookService;
+import com.example.library.service.CoverStorageService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.jooq.SortField;
@@ -24,9 +25,11 @@ import static com.example.library.jooq.tables.Book.BOOK;
 @RequestMapping("/api/books")
 public class BookApiController {
     private final BookService bookService;
+    private final CoverStorageService coverStorageService;
 
-    public BookApiController(BookService bookService) {
+    public BookApiController(BookService bookService, CoverStorageService coverStorageService) {
         this.bookService = bookService;
+        this.coverStorageService = coverStorageService;
     }
 
     @GetMapping
@@ -72,17 +75,18 @@ public class BookApiController {
 
     @PostMapping
     public Long create(@Valid @RequestBody BookDto dto) {
-        return bookService.create(dto);
+        return bookService.create(dto, dto.coverPath());
     }
 
     @PutMapping("/{id}")
     public void update(@PathVariable Long id, @Valid @RequestBody BookDto dto) {
-        bookService.update(id, dto);
+        bookService.update(id, dto, dto.coverPath());
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-        bookService.delete(id);
+        String coverPath = bookService.delete(id);
+        coverStorageService.delete(coverPath);
     }
 
     private java.math.BigDecimal parseDecimal(String value) {

@@ -28,6 +28,7 @@ public class Book implements Serializable {
     private BigDecimal price;
     private Integer stock;
     private BookStatus status;
+    private String coverPath;
 
     public Book() {}
 
@@ -42,6 +43,7 @@ public class Book implements Serializable {
         this.price = value.price;
         this.stock = value.stock;
         this.status = value.status;
+        this.coverPath = value.coverPath;
     }
 
     public Book(
@@ -54,7 +56,8 @@ public class Book implements Serializable {
         String isbn,
         BigDecimal price,
         Integer stock,
-        BookStatus status
+        BookStatus status,
+        String coverPath
     ) {
         this.bookId = bookId;
         this.title = title;
@@ -66,6 +69,7 @@ public class Book implements Serializable {
         this.price = price;
         this.stock = stock;
         this.status = status;
+        this.coverPath = coverPath;
     }
 
     /**
@@ -208,6 +212,20 @@ public class Book implements Serializable {
         this.status = status;
     }
 
+    /**
+     * Getter for <code>booksdb.BOOK.COVER_PATH</code>.
+     */
+    public String getCoverPath() {
+        return this.coverPath;
+    }
+
+    /**
+     * Setter for <code>booksdb.BOOK.COVER_PATH</code>.
+     */
+    public void setCoverPath(String coverPath) {
+        this.coverPath = coverPath;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -277,6 +295,12 @@ public class Book implements Serializable {
         }
         else if (!this.status.equals(other.status))
             return false;
+        if (this.coverPath == null) {
+            if (other.coverPath != null)
+                return false;
+        }
+        else if (!this.coverPath.equals(other.coverPath))
+            return false;
         return true;
     }
 
@@ -294,6 +318,7 @@ public class Book implements Serializable {
         result = prime * result + ((this.price == null) ? 0 : this.price.hashCode());
         result = prime * result + ((this.stock == null) ? 0 : this.stock.hashCode());
         result = prime * result + ((this.status == null) ? 0 : this.status.hashCode());
+        result = prime * result + ((this.coverPath == null) ? 0 : this.coverPath.hashCode());
         return result;
     }
 
@@ -311,6 +336,7 @@ public class Book implements Serializable {
         sb.append(", ").append(price);
         sb.append(", ").append(stock);
         sb.append(", ").append(status);
+        sb.append(", ").append(coverPath);
 
         sb.append(")");
         return sb.toString();

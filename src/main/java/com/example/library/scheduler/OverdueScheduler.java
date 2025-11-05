@@ -31,7 +31,7 @@ public class OverdueScheduler {
         currencyFormat.setMaximumFractionDigits(0);
     }
 
-    @Scheduled(cron = "0 20 00 * * *", zone = "Asia/Ho_Chi_Minh")
+    @Scheduled(cron = "0 00 08 * * *", zone = "Asia/Ho_Chi_Minh")
     public void markOverdueDaily() {
         LocalDateTime now = LocalDateTime.now();
 

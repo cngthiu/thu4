@@ -113,6 +113,11 @@ public class Book extends TableImpl<BookRecord> {
      */
     public final TableField<BookRecord, BookStatus> STATUS = createField(DSL.name("STATUS"), SQLDataType.VARCHAR(11).nullable(false).defaultValue(DSL.inline("AVAILABLE", SQLDataType.VARCHAR)).asEnumDataType(BookStatus.class), this, "");
 
+    /**
+     * The column <code>booksdb.BOOK.COVER_PATH</code>.
+     */
+    public final TableField<BookRecord, String> COVER_PATH = createField(DSL.name("COVER_PATH"), SQLDataType.VARCHAR(255), this, "");
+
     private Book(Name alias, Table<BookRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

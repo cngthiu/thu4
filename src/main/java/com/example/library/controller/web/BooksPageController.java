@@ -10,6 +10,7 @@ import com.example.library.jooq.tables.records.CategoryRecord;
 import com.example.library.service.AuthorService;
 import com.example.library.service.BookService;
 import com.example.library.service.CategoryService;
+import com.example.library.service.CoverStorageService;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,13 +39,16 @@ public class BooksPageController {
     private final BookService bookService;
     private final AuthorService authorService;
     private final CategoryService categoryService;
+    private final CoverStorageService coverStorageService;
 
     public BooksPageController(BookService bookService,
                                AuthorService authorService,
-                               CategoryService categoryService) {
+                               CategoryService categoryService,
+                               CoverStorageService coverStorageService) {
         this.bookService = bookService;
         this.authorService = authorService;
         this.categoryService = categoryService;
+        this.coverStorageService = coverStorageService;
     }
 
     @GetMapping
@@ -94,19 +99,23 @@ public class BooksPageController {
         List<CategoryRecord> categories = categoryService.listAll();
         Long defaultAuthor = authors.isEmpty() ? null : authors.get(0).getAuthorId();
         Long defaultCategory = categories.isEmpty() ? null : categories.get(0).getCategoryId();
-        model.addAttribute("book", new BookDto(null, "", defaultAuthor, defaultCategory, null, null, null, BigDecimal.ZERO, 0, BookStatus.AVAILABLE.name()));
+        model.addAttribute("book", new BookDto(null, "", defaultAuthor, defaultCategory, null, null, null, BigDecimal.ZERO, 0, BookStatus.AVAILABLE.name(), null));
         model.addAttribute("authors", authors);
         model.addAttribute("categories", categories);
         return "books/form";
     }
 
     @PostMapping
-    public String create(@Valid @ModelAttribute("book") BookDto dto, BindingResult br, Model model) {
+    public String create(@Valid @ModelAttribute("book") BookDto dto,
+                         BindingResult br,
+                         @RequestParam(value = "coverFile", required = false) MultipartFile coverFile,
+                         Model model) {
         if (br.hasErrors()) {
             populateReferenceData(model);
             return "books/form";
         }
-        bookService.create(dto);
+        String storedPath = coverStorageService.store(coverFile, dto.coverPath());
+        bookService.create(dto, storedPath);
         return "redirect:/books";
     }
 
@@ -126,7 +135,8 @@ public class BooksPageController {
                 rec.getIsbn(),
                 rec.getPrice(),
                 rec.getStock(),
-                rec.getStatus() == null ? null : rec.getStatus().name()
+                rec.getStatus() == null ? null : rec.getStatus().name(),
+                rec.get("COVER_PATH", String.class)
         );
         model.addAttribute("book", dto);
         populateReferenceData(model);
@@ -134,18 +144,24 @@ public class BooksPageController {
     }
 
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id, @Valid @ModelAttribute("book") BookDto dto, BindingResult br, Model model) {
+    public String update(@PathVariable Long id,
+                         @Valid @ModelAttribute("book") BookDto dto,
+                         BindingResult br,
+                         @RequestParam(value = "coverFile", required = false) MultipartFile coverFile,
+                         Model model) {
         if (br.hasErrors()) {
             populateReferenceData(model);
             return "books/form";
         }
-        bookService.update(id, dto);
+        String storedPath = coverStorageService.store(coverFile, dto.coverPath());
+        bookService.update(id, dto, storedPath);
         return "redirect:/books";
     }
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id) {
-        bookService.delete(id);
+        String coverPath = bookService.delete(id);
+        coverStorageService.delete(coverPath);
         return "redirect:/books";
     }
 

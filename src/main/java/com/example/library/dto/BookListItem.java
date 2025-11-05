@@ -12,5 +12,6 @@ public record BookListItem(
         String categoryName,
         BigDecimal price,
         Integer stock,
-        BookStatus status
+        BookStatus status,
+        String coverPath
 ) {}

@@ -5,7 +5,7 @@
 <body>
 <section>
   <h3 th:text="${book.id() == null ? 'Create Book' : 'Edit Book'}"></h3>
-  <form th:action="${book.id() == null}? @{/books} : @{|/books/${book.id()}|}" method="post">
+  <form th:action="${book.id() == null}? @{/books} : @{|/books/${book.id()}|}" th:object="${book}" method="post" enctype="multipart/form-data">
     <div class="row g-3">
       <div class="col-md-6">
         <label class="form-label">Title</label>
@@ -59,6 +59,18 @@
           <option value="AVAILABLE" th:selected="${book.status() == 'AVAILABLE'}">AVAILABLE</option>
           <option value="UNAVAILABLE" th:selected="${book.status() == 'UNAVAILABLE'}">UNAVAILABLE</option>
         </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Cover image</label>
+        <input type="file" class="form-control" name="coverFile" accept="image/*">
+        <input type="hidden" th:field="*{coverPath}">
+        <small class="form-text text-muted">Ảnh sẽ lưu tại máy chủ.</small>
+      </div>
+      <div class="col-md-3" th:if="${book.coverPath() != null && !#strings.isEmpty(book.coverPath())}">
+        <label class="form-label">Preview</label>
+        <div class="cover-preview rounded overflow-hidden border">
+          <img th:src="@{/covers/{file}(file=${book.coverPath()})}" alt="Cover" class="cover-preview-img">
+        </div>
       </div>
     </div>
     <div class="mt-3">

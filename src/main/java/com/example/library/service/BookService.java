@@ -2,14 +2,15 @@ package com.example.library.service;
 
 import com.example.library.dto.BookDto;
 import com.example.library.dto.BookListItem;
+import com.example.library.dto.PagedResult;
 import com.example.library.jooq.enums.BookStatus;
 import com.example.library.jooq.tables.records.BookRecord;
-import com.example.library.dto.PagedResult;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
@@ -23,6 +24,8 @@ import static com.example.library.jooq.tables.Category.CATEGORY;
 
 @Service
 public class BookService {
+    private static final Field<String> COVER_PATH = DSL.field("COVER_PATH", String.class);
+
     private final DSLContext dsl;
 
     public BookService(DSLContext dsl) {
@@ -103,7 +106,8 @@ public class BookService {
                         CATEGORY.NAME,
                         BOOK.PRICE,
                         BOOK.STOCK,
-                        BOOK.STATUS
+                        BOOK.STATUS,
+                        COVER_PATH
                 )
                 .from(BOOK)
                 .leftJoin(AUTHOR).on(BOOK.AUTHOR_ID.eq(AUTHOR.AUTHOR_ID))
@@ -153,7 +157,8 @@ public class BookService {
                 record.get(CATEGORY.NAME),
                 record.get(BOOK.PRICE),
                 record.get(BOOK.STOCK),
-                record.get(BOOK.STATUS)
+                record.get(BOOK.STATUS),
+                record.get(COVER_PATH, String.class)
         );
     }
 
@@ -164,23 +169,28 @@ public class BookService {
     }
 
     @Transactional
-    public Long create(BookDto dto) {
-        BookRecord record = dsl.newRecord(BOOK);
-        record.setTitle(dto.title());
-        record.setAuthorId(dto.authorId());
-        record.setCategoryId(dto.categoryId());
-        record.setPublisher(dto.publisher());
-        record.setPublishedYear(dto.publishedYear());
-        record.setIsbn(dto.isbn());
-        record.setPrice(dto.price());
-        record.setStock(dto.stock());
-        record.setStatus(resolveStatus(dto.status()));
-        record.store();
-        return record.getBookId();
+    public Long create(BookDto dto, String coverPath) {
+        Record inserted = dsl.insertInto(BOOK)
+                .set(BOOK.TITLE, dto.title())
+                .set(BOOK.AUTHOR_ID, dto.authorId())
+                .set(BOOK.CATEGORY_ID, dto.categoryId())
+                .set(BOOK.PUBLISHER, dto.publisher())
+                .set(BOOK.PUBLISHED_YEAR, dto.publishedYear())
+                .set(BOOK.ISBN, dto.isbn())
+                .set(BOOK.PRICE, dto.price())
+                .set(BOOK.STOCK, dto.stock())
+                .set(BOOK.STATUS, resolveStatus(dto.status()))
+                .set(COVER_PATH, coverPath)
+                .returning(BOOK.BOOK_ID)
+                .fetchOne();
+        if (inserted == null) {
+            throw new IllegalStateException("Failed to create book");
+        }
+        return inserted.get(BOOK.BOOK_ID);
     }
 
     @Transactional
-    public void update(Long id, BookDto dto) {
+    public void update(Long id, BookDto dto, String coverPath) {
         int rowsUpdated = dsl.update(BOOK)
                 .set(BOOK.TITLE, dto.title())
                 .set(BOOK.AUTHOR_ID, dto.authorId())
@@ -191,6 +201,7 @@ public class BookService {
                 .set(BOOK.PRICE, dto.price())
                 .set(BOOK.STOCK, dto.stock())
                 .set(BOOK.STATUS, resolveStatus(dto.status()))
+                .set(COVER_PATH, coverPath)
                 .where(BOOK.BOOK_ID.eq(id))
                 .execute();
         if (rowsUpdated == 0) {
@@ -199,10 +210,16 @@ public class BookService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public String delete(Long id) {
+        Record record = dsl.select(COVER_PATH)
+                .from(BOOK)
+                .where(BOOK.BOOK_ID.eq(id))
+                .fetchOne();
+        String coverPath = record == null ? null : record.get(COVER_PATH, String.class);
         dsl.deleteFrom(BOOK)
                 .where(BOOK.BOOK_ID.eq(id))
                 .execute();
+        return coverPath;
     }
 
     private BookStatus resolveStatus(String status) {

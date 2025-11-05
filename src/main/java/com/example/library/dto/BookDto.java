@@ -16,5 +16,6 @@ public record BookDto(
         String isbn,
         BigDecimal price,
         @NotNull @Min(0) Integer stock,
-        String status
+        String status,
+        String coverPath
 ) {}

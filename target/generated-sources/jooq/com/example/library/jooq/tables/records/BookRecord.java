@@ -161,6 +161,20 @@ public class BookRecord extends UpdatableRecordImpl<BookRecord> {
         return (BookStatus) get(9);
     }
 
+    /**
+     * Setter for <code>booksdb.BOOK.COVER_PATH</code>.
+     */
+    public void setCoverPath(String value) {
+        set(10, value);
+    }
+
+    /**
+     * Getter for <code>booksdb.BOOK.COVER_PATH</code>.
+     */
+    public String getCoverPath() {
+        return (String) get(10);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -184,7 +198,7 @@ public class BookRecord extends UpdatableRecordImpl<BookRecord> {
     /**
      * Create a detached, initialised BookRecord
      */
-    public BookRecord(Long bookId, String title, Long authorId, Long categoryId, String publisher, Integer publishedYear, String isbn, BigDecimal price, Integer stock, BookStatus status) {
+    public BookRecord(Long bookId, String title, Long authorId, Long categoryId, String publisher, Integer publishedYear, String isbn, BigDecimal price, Integer stock, BookStatus status, String coverPath) {
         super(Book.BOOK);
 
         setBookId(bookId);
@@ -197,6 +211,7 @@ public class BookRecord extends UpdatableRecordImpl<BookRecord> {
         setPrice(price);
         setStock(stock);
         setStatus(status);
+        setCoverPath(coverPath);
         resetChangedOnNotNull();
     }
 
@@ -217,6 +232,7 @@ public class BookRecord extends UpdatableRecordImpl<BookRecord> {
             setPrice(value.getPrice());
             setStock(value.getStock());
             setStatus(value.getStatus());
+            setCoverPath(value.getCoverPath());
             resetChangedOnNotNull();
         }
     }
